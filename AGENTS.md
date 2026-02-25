@@ -6,6 +6,7 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 ## Repository Structure
 ```
 / (repo root)
+  manifest.json         # Chrome Manifest V3 (Story #6)
   package.json          # npm config with lint/format/test scripts
   package-lock.json     # npm lockfile
   README.md             # User documentation
@@ -40,7 +41,10 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 - Keep codebase simple; avoid premature abstraction
 
 ## Current Status
-Story #5: Repository scaffold complete with:
-- Directory structure (src/popup/, assets/icons/)
-- package.json with stub scripts (lint, format, test)
-- CSP-safe popup placeholders (HTML, CSS, JS)
+Story #6: Add Manifest V3 manifest.json (in progress)
+- Repository scaffold complete (Story #5)
+- manifest.json created at root with minimal MV3 fields
+- Popup entry point and icon wiring pending
+
+### Files Added/Modified
+- `manifest.json` - Minimal MV3 manifest (no permissions, no service worker)
