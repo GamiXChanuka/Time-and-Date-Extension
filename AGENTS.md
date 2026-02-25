@@ -12,11 +12,11 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
   AGENTS.md             # This file
   /src
     /popup
-      popup.html        # Valid HTML5, CSP-safe
-      popup.css         # Popup styles (Flexbox/Grid, no remote assets)
-      popup.js          # Uses addEventListener, no eval/inline handlers
+      popup.html        # Valid HTML5, CSP-safe, semantic structure
+      popup.css         # Popup styles (system fonts, no remote assets)
+      popup.js          # CSP-compliant, uses addEventListener
   /assets
-    /icons              # Extension icons (16, 32, 48, 128px)
+    /icons              # Extension icons (placeholder for later)
 ```
 
 ## Technology Stack
@@ -26,8 +26,8 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 
 ## Coding Standards
 - **CSP Compliance:** No inline scripts/handlers; keep JS in separate files
-- **HTML:** Use semantic elements (e.g., `<main>`, `<time>` for date/time)
-- **CSS:** Use Flexbox or Grid; ensure accessibility (contrast, font sizes)
+- **HTML:** Use semantic elements (e.g., `<main>`, `<h1>`, `<time>` for date/time)
+- **CSS:** Use system fonts or Flexbox/Grid; ensure accessibility
 - **JS:** Use `addEventListener`; no `eval()` or dynamic code execution
 - **Accessibility:** ARIA labels, keyboard focus, tab order for interactive elements
 - **Git:** Meaningful commit messages, clean history
@@ -40,4 +40,7 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 - Keep codebase simple; avoid premature abstraction
 
 ## Current Status
-Story #5: Initializing repository scaffold (directories, package.json, popup placeholders)
+Story #5: Repository scaffold complete with:
+- Directory structure (src/popup/, assets/icons/)
+- package.json with stub scripts (lint, format, test)
+- CSP-safe popup placeholders (HTML, CSS, JS)
