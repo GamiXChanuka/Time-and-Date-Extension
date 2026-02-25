@@ -44,7 +44,8 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 Story #6: Add Manifest V3 manifest.json (in progress)
 - Repository scaffold complete (Story #5)
 - manifest.json created at root with minimal MV3 fields
-- Popup entry point and icon wiring pending
+- Popup entry point wired via `action.default_popup`
+- Icon assets and wiring pending
 
 ### Files Added/Modified
-- `manifest.json` - Minimal MV3 manifest (no permissions, no service worker)
+- `manifest.json` - Minimal MV3 manifest with popup entry point (no permissions, no service worker)
