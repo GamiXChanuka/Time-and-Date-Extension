@@ -1,0 +1,19 @@
+{
+  "name": "time-date-extension",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A lightweight Chrome extension displaying current time and date",
+  "scripts": {
+    "lint": "echo 'Linting not yet configured'",
+    "format": "echo 'Formatting not yet configured'",
+    "test": "echo 'Tests not yet configured'"
+  },
+  "keywords": [
+    "chrome-extension",
+    "time",
+    "date",
+    "manifest-v3"
+  ],
+  "author": "",
+  "license": "MIT"
+}
