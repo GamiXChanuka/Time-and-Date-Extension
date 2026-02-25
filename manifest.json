@@ -1,0 +1,6 @@
+{
+  "manifest_version": 3,
+  "name": "Time & Date Extension",
+  "version": "1.0.0",
+  "description": "A lightweight Chrome extension displaying current time and date"
+}
