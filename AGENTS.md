@@ -17,7 +17,7 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
       popup.css         # Popup styles (system fonts, no remote assets)
       popup.js          # CSP-compliant, uses addEventListener
   /assets
-    /icons              # Extension icons (placeholder for later)
+    /icons              # Extension icons (16, 32, 48, 128 px PNG)
 ```
 
 ## Technology Stack
@@ -41,11 +41,16 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 - Keep codebase simple; avoid premature abstraction
 
 ## Current Status
-Story #6: Add Manifest V3 manifest.json (in progress)
+Story #6: Add Manifest V3 manifest.json (complete)
 - Repository scaffold complete (Story #5)
-- manifest.json created at root with minimal MV3 fields
+- manifest.json created at root with all required MV3 fields
 - Popup entry point wired via `action.default_popup`
-- Icon assets and wiring pending
+- Icon assets generated and wired (16/32/48/128 px)
+- No permissions, no service worker per requirements
 
 ### Files Added/Modified
-- `manifest.json` - Minimal MV3 manifest with popup entry point (no permissions, no service worker)
+- `manifest.json` - Complete MV3 manifest with popup and icons (no permissions, no service worker)
+- `assets/icons/icon16.png` - Toolbar icon
+- `assets/icons/icon32.png` - Toolbar HiDPI icon  
+- `assets/icons/icon48.png` - Extension management icon
+- `assets/icons/icon128.png` - Chrome Web Store icon
