@@ -25,6 +25,19 @@ This extension uses a minimal Manifest V3 configuration intentionally:
 
 This minimal approach ensures maximum privacy, security, and performance while complying with Chrome Web Store requirements.
 
+Note: The `manifest.json` intentionally omits `permissions` and `host_permissions` entirely rather than setting them to empty arrays, as the absence of these keys conveys the same meaning with less configuration.
+
+## Smoke Testing
+
+To verify the extension loads correctly:
+
+1. Follow the **Installation** steps above to load the unpacked extension
+2. Verify **no manifest errors** appear in the Chrome extensions page
+3. Confirm the **toolbar icon** displays (blue clock icon)
+4. Click the icon and verify the **popup opens** showing the placeholder content
+
+If all steps pass, the extension is properly configured and ready for further development.
+
 ## Project Structure
 
 ```
