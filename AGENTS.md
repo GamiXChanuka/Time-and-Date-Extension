@@ -41,9 +41,10 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 - Keep codebase simple; avoid premature abstraction
 
 ## Current Status
-Story #6: Add Manifest V3 manifest.json (COMPLETE)
+Story #6: Add Manifest V3 manifest.json (COMPLETE)  
+Story #7: Implement CSP-compliant extension popup scaffold (IN PROGRESS)
 
-All acceptance criteria met:
+### Story #6 Acceptance Criteria (COMPLETE)
 - ✓ `manifest.json` exists at repository root with `manifest_version: 3`
 - ✓ Required metadata present (name, version, description)
 - ✓ `action.default_popup` points to `src/popup/popup.html`
@@ -53,7 +54,10 @@ All acceptance criteria met:
 - ✓ MV3/CSP compliant (no inline scripts, no eval)
 - ✓ Smoke test documentation in README.md
 
-### Files Added/Modified
+### Story #7 Implementation Steps (IN PROGRESS)
+1. ✓ **Step 1: Manifest alignment** - Verified `manifest.json` paths are correct (no changes needed)
+
+### Files
 - `manifest.json` - Complete MV3 manifest with popup and icons (no permissions, no service worker)
 - `assets/icons/icon16.png` - Toolbar icon
 - `assets/icons/icon32.png` - Toolbar HiDPI icon  
@@ -61,3 +65,6 @@ All acceptance criteria met:
 - `assets/icons/icon128.png` - Chrome Web Store icon
 - `README.md` - Installation and smoke testing documentation
 - `.gitignore` - Excludes virtual environment
+- `src/popup/popup.html` - Popup HTML scaffold (CSP-compliant, semantic structure)
+- `src/popup/popup.js` - Popup JavaScript (uses addEventListener)
+- `src/popup/popup.css` - Popup styles (system fonts, minimal)
