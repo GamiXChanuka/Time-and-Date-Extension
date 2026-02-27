@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "echo 'Linting not yet configured'",
     "format": "echo 'Formatting not yet configured'",
-    "test": "echo 'Tests not yet configured'"
+    "test": "echo 'Tests not yet configured'",
+    "check:csp": "node scripts/check-csp.js"
   },
   "keywords": [
     "chrome-extension",
