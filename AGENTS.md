@@ -42,7 +42,7 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 
 ## Current Status
 Story #6: Add Manifest V3 manifest.json (COMPLETE)  
-Story #7: Implement CSP-compliant extension popup scaffold (IN PROGRESS)
+Story #7: Implement CSP-compliant extension popup scaffold (COMPLETE)
 
 ### Story #6 Acceptance Criteria (COMPLETE)
 - ✓ `manifest.json` exists at repository root with `manifest_version: 3`
@@ -54,11 +54,12 @@ Story #7: Implement CSP-compliant extension popup scaffold (IN PROGRESS)
 - ✓ MV3/CSP compliant (no inline scripts, no eval)
 - ✓ Smoke test documentation in README.md
 
-### Story #7 Implementation Steps (IN PROGRESS)
+### Story #7 Implementation Steps (COMPLETE)
 1. ✓ **Step 1: Manifest alignment** - Verified `manifest.json` paths are correct (no changes needed)
 2. ✓ **Step 2: Popup HTML markup** - Implemented semantic elements (`<main>`, `<h1>`, `<time>`, `<button>`) with CSP compliance
 3. ✓ **Step 3: Popup JS behavior** - Implemented addEventListener wiring, timestamp display, and Refresh button functionality with defensive checks
 4. ✓ **Step 4: Popup CSS styling** - Added minimal accessible styling with Flexbox layout, button focus states, and tabular-nums
+5. ✓ **Step 5: Regression protection** - Added automated CSP check script and updated README with manual verification steps
 
 ### Files
 - `manifest.json` - Complete MV3 manifest with popup and icons (no permissions, no service worker)
@@ -66,8 +67,9 @@ Story #7: Implement CSP-compliant extension popup scaffold (IN PROGRESS)
 - `assets/icons/icon32.png` - Toolbar HiDPI icon  
 - `assets/icons/icon48.png` - Extension management icon
 - `assets/icons/icon128.png` - Chrome Web Store icon
-- `README.md` - Installation and smoke testing documentation
+- `README.md` - Installation, smoke testing, and manual verification documentation
 - `.gitignore` - Excludes virtual environment
 - `src/popup/popup.html` - Popup HTML scaffold (CSP-compliant, semantic structure)
 - `src/popup/popup.js` - Popup JavaScript (uses addEventListener)
 - `src/popup/popup.css` - Popup styles (system fonts, minimal)
+- `scripts/check-csp.js` - Automated CSP compliance check script
