@@ -38,6 +38,41 @@ To verify the extension loads correctly:
 
 If all steps pass, the extension is properly configured and ready for further development.
 
+## Manual Verification
+
+To verify the popup scaffold is working correctly:
+
+1. Load the extension in Chrome (see **Installation** above)
+2. Open Chrome DevTools (F12) and switch to the **Console** tab
+3. Click the extension icon in the toolbar
+4. Verify in the Console:
+   - **No errors** appear when the popup opens
+   - The status shows "Popup loaded"
+   - The timestamp displays the current date/time in your locale
+5. Click the **Refresh** button
+6. Verify:
+   - The status changes to "Refreshed"
+   - The timestamp updates to the current time
+   - No console errors appear
+
+If all verifications pass, the CSP-compliant popup scaffold is fully functional.
+
+## Automated Checks
+
+### CSP Compliance Check
+
+To prevent CSP regressions, run the automated check:
+
+```bash
+npm run check:csp
+```
+
+This scans `popup.html` for:
+- Inline `<script>` blocks (without `src` attribute)
+- Inline event handlers (`onclick`, `onload`, etc.)
+
+The script exits with code 0 on success, or 1 if violations are found.
+
 ## Project Structure
 
 ```

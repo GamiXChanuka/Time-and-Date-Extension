@@ -8,17 +8,53 @@ body {
 }
 
 main {
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
 }
 
 h1 {
-  margin: 0 0 12px 0;
+  margin: 0 0 4px 0;
   font-size: 18px;
   font-weight: 600;
   color: #1a1a1a;
 }
 
-#content {
+#status {
   font-size: 14px;
   color: #666666;
+  margin: 0;
+}
+
+#timestamp {
+  font-size: 16px;
+  font-weight: 500;
+  color: #1a1a1a;
+  font-variant-numeric: tabular-nums;
+}
+
+#refresh-btn {
+  margin-top: 8px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffffff;
+  background-color: #2563eb;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+#refresh-btn:hover {
+  background-color: #1d4ed8;
+}
+
+#refresh-btn:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+#refresh-btn:active {
+  background-color: #1e40af;
 }
