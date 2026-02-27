@@ -56,6 +56,7 @@ Story #7: Implement CSP-compliant extension popup scaffold (IN PROGRESS)
 
 ### Story #7 Implementation Steps (IN PROGRESS)
 1. ✓ **Step 1: Manifest alignment** - Verified `manifest.json` paths are correct (no changes needed)
+2. ✓ **Step 2: Popup HTML markup** - Implemented semantic elements (`<main>`, `<h1>`, `<time>`, `<button>`) with CSP compliance
 
 ### Files
 - `manifest.json` - Complete MV3 manifest with popup and icons (no permissions, no service worker)
