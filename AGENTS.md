@@ -72,7 +72,7 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 
 Story #6: Add Manifest V3 manifest.json (COMPLETE)  
 Story #7: Implement CSP-compliant extension popup scaffold (COMPLETE)  
-Story #8: Set up baseline code quality tooling (IN PROGRESS - Steps 1-4 Complete)
+Story #8: Set up baseline code quality tooling (IN PROGRESS - Steps 1-5 Complete)
 
 ### Story #6 Acceptance Criteria (COMPLETE)
 
@@ -99,7 +99,7 @@ Story #8: Set up baseline code quality tooling (IN PROGRESS - Steps 1-4 Complete
 2. ✓ **Config files** - .eslintrc.cjs (browser ES2021, CSP-safe), .prettierrc (2-space, semicolons)
 3. ✓ **Validation script** - validate-manifest.js with AJV, offline MV3 schema check
 4. ✓ **npm scripts** - lint, lint:fix, format, format:check, validate:manifest, check (aggregate)
-5. Pending: Documentation updates (README.md)
+5. ✓ **Documentation** - Code Quality section in README.md with scripts and workflows
 
 ### Files
 
