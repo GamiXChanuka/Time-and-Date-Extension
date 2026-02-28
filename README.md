@@ -68,6 +68,7 @@ npm run check:csp
 ```
 
 This scans `popup.html` for:
+
 - Inline `<script>` blocks (without `src` attribute)
 - Inline event handlers (`onclick`, `onload`, etc.)
 

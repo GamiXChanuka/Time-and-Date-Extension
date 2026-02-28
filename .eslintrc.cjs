@@ -1,0 +1,53 @@
+/**
+ * ESLint Configuration for Time & Date Chrome Extension
+ *
+ * Targets browser ES2021 for extension code with CSP-safe rules.
+ * Node environment enabled for scripts/ directory.
+ */
+
+module.exports = {
+  root: true,
+
+  env: {
+    browser: true,
+    es2021: true,
+  },
+
+  extends: [
+    'eslint:recommended',
+    'prettier', // Disables ESLint rules that conflict with Prettier
+  ],
+
+  parserOptions: {
+    ecmaVersion: 2021,
+    sourceType: 'script',
+  },
+
+  rules: {
+    // MV3/CSP safety rules - must be errors
+    'no-eval': 'error',
+    'no-implied-eval': 'error',
+
+    // Baseline correctness rules
+    'no-undef': 'error',
+    'no-unused-vars': 'warn',
+    'eqeqeq': ['error', 'always'],
+    'curly': ['error', 'all'],
+  },
+
+  overrides: [
+    {
+      files: ['scripts/**/*.js'],
+      env: {
+        browser: false,
+        node: true,
+        es2021: true,
+      },
+    },
+  ],
+
+  ignorePatterns: [
+    'node_modules/',
+    'schemas/',
+  ],
+};
