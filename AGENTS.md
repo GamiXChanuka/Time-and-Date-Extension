@@ -14,6 +14,8 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
   README.md             # User documentation
   AGENTS.md             # This file
   .gitignore            # Excludes node_modules, .venv
+  .eslintrc.cjs         # ESLint configuration
+  .prettierrc           # Prettier configuration
   /src
     /popup
       popup.html        # Valid HTML5, CSP-safe, semantic structure
@@ -23,6 +25,7 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
     /icons              # Extension icons (16, 32, 48, 128 px PNG)
   /scripts
     check-csp.js        # CSP compliance validation script
+    validate-manifest.js # MV3 manifest validation (AJV-based)
   /schemas
     manifest-v3-schema.json  # Pinned MV3 schema for offline validation
 ```
@@ -45,6 +48,18 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 - **Accessibility:** ARIA labels, keyboard focus, tab order for interactive elements
 - **Git:** Meaningful commit messages, clean history
 
+## npm Scripts
+
+| Script                      | Purpose                                                          |
+| --------------------------- | ---------------------------------------------------------------- |
+| `npm run lint`              | Lint all JS files with ESLint                                    |
+| `npm run lint:fix`          | Auto-fix ESLint issues                                           |
+| `npm run format`            | Format all files with Prettier                                   |
+| `npm run format:check`      | Check formatting (CI-friendly)                                   |
+| `npm run validate:manifest` | Validate manifest.json against MV3 schema                        |
+| `npm run check`             | Run lint + format:check + validate:manifest (aggregate CI check) |
+| `npm run check:csp`         | Check CSP compliance in popup.html                               |
+
 ## Key Constraints
 
 - Manifest V3 CSP: no inline scripts, no eval()
@@ -57,7 +72,7 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 
 Story #6: Add Manifest V3 manifest.json (COMPLETE)  
 Story #7: Implement CSP-compliant extension popup scaffold (COMPLETE)  
-Story #8: Set up baseline code quality tooling (IN PROGRESS - Steps 1-3 Complete)
+Story #8: Set up baseline code quality tooling (IN PROGRESS - Steps 1-4 Complete)
 
 ### Story #6 Acceptance Criteria (COMPLETE)
 
@@ -83,8 +98,8 @@ Story #8: Set up baseline code quality tooling (IN PROGRESS - Steps 1-3 Complete
 1. ✓ **Dependencies** - ESLint 8.x, Prettier 3, AJV 8, eslint-config-prettier installed
 2. ✓ **Config files** - .eslintrc.cjs (browser ES2021, CSP-safe), .prettierrc (2-space, semicolons)
 3. ✓ **Validation script** - validate-manifest.js with AJV, offline MV3 schema check
-4. Pending: npm scripts (lint, format, validate:manifest, check)
-5. Pending: Documentation updates
+4. ✓ **npm scripts** - lint, lint:fix, format, format:check, validate:manifest, check (aggregate)
+5. Pending: Documentation updates (README.md)
 
 ### Files
 
@@ -92,11 +107,11 @@ Story #8: Set up baseline code quality tooling (IN PROGRESS - Steps 1-3 Complete
 - `assets/icons/icon{16,32,48,128}.png` - Extension icons
 - `README.md` - Installation, smoke testing, and verification docs
 - `.gitignore` - Excludes node_modules and virtual environments
+- `.eslintrc.cjs` - ESLint config with CSP-safe rules (no-eval, no-implied-eval)
+- `.prettierrc` - Prettier config for consistent formatting
 - `src/popup/popup.html` - Popup HTML scaffold (CSP-compliant)
 - `src/popup/popup.js` - Popup JavaScript (uses addEventListener)
 - `src/popup/popup.css` - Popup styles (system fonts, minimal)
 - `scripts/check-csp.js` - Automated CSP compliance check
-- `.eslintrc.cjs` - ESLint config with CSP-safe rules (no-eval, no-implied-eval)
-- `.prettierrc` - Prettier config for consistent formatting
 - `scripts/validate-manifest.js` - Offline MV3 manifest validation (AJV-based)
 - `schemas/manifest-v3-schema.json` - Pinned MV3 schema for offline validation
