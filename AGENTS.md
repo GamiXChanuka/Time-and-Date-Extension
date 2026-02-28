@@ -72,7 +72,7 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 
 Story #6: Add Manifest V3 manifest.json (COMPLETE)  
 Story #7: Implement CSP-compliant extension popup scaffold (COMPLETE)  
-Story #8: Set up baseline code quality tooling (IN PROGRESS - Steps 1-5 Complete)
+Story #8: Set up baseline code quality tooling (COMPLETE)
 
 ### Story #6 Acceptance Criteria (COMPLETE)
 
