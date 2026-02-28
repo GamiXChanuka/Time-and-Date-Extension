@@ -31,8 +31,8 @@ module.exports = {
     // Baseline correctness rules
     'no-undef': 'error',
     'no-unused-vars': 'warn',
-    'eqeqeq': ['error', 'always'],
-    'curly': ['error', 'all'],
+    eqeqeq: ['error', 'always'],
+    curly: ['error', 'all'],
   },
 
   overrides: [
@@ -44,10 +44,14 @@ module.exports = {
         es2021: true,
       },
     },
+    {
+      files: ['**/*.cjs'],
+      env: {
+        node: true,
+        es2021: true,
+      },
+    },
   ],
 
-  ignorePatterns: [
-    'node_modules/',
-    'schemas/',
-  ],
+  ignorePatterns: ['node_modules/', 'schemas/'],
 };

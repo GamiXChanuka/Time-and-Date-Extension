@@ -1,9 +1,11 @@
 # Time & Date Extension - Agent Reference
 
 ## Project Overview
+
 A lightweight Manifest V3 Chrome extension displaying current time and date in a clean, light-themed popup interface.
 
 ## Repository Structure
+
 ```
 / (repo root)
   manifest.json         # Chrome Manifest V3 (Story #6)
@@ -26,12 +28,14 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 ```
 
 ## Technology Stack
+
 - Plain HTML, CSS, JavaScript (no frameworks)
 - Chrome Manifest V3
 - ESLint 8.x + Prettier 3 + AJV 8 (code quality tooling)
 - No backend, no database, no external network calls
 
 ## Coding Standards
+
 - **CSP Compliance:** No inline scripts/handlers; keep JS in separate files
 - **HTML:** Use semantic elements (e.g., `<main>`, `<h1>`, `<time>` for date/time)
 - **CSS:** Use system fonts or Flexbox/Grid; ensure accessibility
@@ -42,6 +46,7 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 - **Git:** Meaningful commit messages, clean history
 
 ## Key Constraints
+
 - Manifest V3 CSP: no inline scripts, no eval()
 - Zero permissions unless chrome.storage needed later
 - Work entirely offline
@@ -49,11 +54,13 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 - Keep codebase simple; avoid premature abstraction
 
 ## Current Status
+
 Story #6: Add Manifest V3 manifest.json (COMPLETE)  
 Story #7: Implement CSP-compliant extension popup scaffold (COMPLETE)  
-Story #8: Set up baseline code quality tooling (IN PROGRESS - Step 1 Complete)
+Story #8: Set up baseline code quality tooling (IN PROGRESS - Steps 1-2 Complete)
 
 ### Story #6 Acceptance Criteria (COMPLETE)
+
 - ✓ `manifest.json` exists at repository root with `manifest_version: 3`
 - ✓ Required metadata present (name, version, description)
 - ✓ `action.default_popup` points to `src/popup/popup.html`
@@ -64,6 +71,7 @@ Story #8: Set up baseline code quality tooling (IN PROGRESS - Step 1 Complete)
 - ✓ Smoke test documentation in README.md
 
 ### Story #7 Implementation Steps (COMPLETE)
+
 1. ✓ **Step 1: Manifest alignment** - Verified `manifest.json` paths are correct
 2. ✓ **Step 2: Popup HTML markup** - Implemented semantic elements with CSP compliance
 3. ✓ **Step 3: Popup JS behavior** - Implemented addEventListener wiring, timestamp display, Refresh button
@@ -71,13 +79,15 @@ Story #8: Set up baseline code quality tooling (IN PROGRESS - Step 1 Complete)
 5. ✓ **Step 5: Regression protection** - Added automated CSP check script
 
 ### Story #8 Implementation Steps (IN PROGRESS)
+
 1. ✓ **Dependencies** - ESLint 8.x, Prettier 3, AJV 8, eslint-config-prettier installed
-2. Pending: ESLint and Prettier config files
+2. ✓ **Config files** - .eslintrc.cjs (browser ES2021, CSP-safe), .prettierrc (2-space, semicolons)
 3. Pending: Manifest validation script
 4. Pending: npm scripts (lint, format, validate:manifest, check)
 5. Pending: Documentation updates
 
 ### Files
+
 - `manifest.json` - Complete MV3 manifest with popup and icons
 - `assets/icons/icon{16,32,48,128}.png` - Extension icons
 - `README.md` - Installation, smoke testing, and verification docs
@@ -86,4 +96,6 @@ Story #8: Set up baseline code quality tooling (IN PROGRESS - Step 1 Complete)
 - `src/popup/popup.js` - Popup JavaScript (uses addEventListener)
 - `src/popup/popup.css` - Popup styles (system fonts, minimal)
 - `scripts/check-csp.js` - Automated CSP compliance check
+- `.eslintrc.cjs` - ESLint config with CSP-safe rules (no-eval, no-implied-eval)
+- `.prettierrc` - Prettier config for consistent formatting
 - `schemas/manifest-v3-schema.json` - Pinned MV3 schema for offline validation
