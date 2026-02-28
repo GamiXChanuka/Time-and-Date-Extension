@@ -11,6 +11,7 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
   package-lock.json     # npm lockfile
   README.md             # User documentation
   AGENTS.md             # This file
+  .gitignore            # Excludes node_modules, .venv
   /src
     /popup
       popup.html        # Valid HTML5, CSP-safe, semantic structure
@@ -18,11 +19,16 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
       popup.js          # CSP-compliant, uses addEventListener
   /assets
     /icons              # Extension icons (16, 32, 48, 128 px PNG)
+  /scripts
+    check-csp.js        # CSP compliance validation script
+  /schemas
+    manifest-v3-schema.json  # Pinned MV3 schema for offline validation
 ```
 
 ## Technology Stack
 - Plain HTML, CSS, JavaScript (no frameworks)
 - Chrome Manifest V3
+- ESLint 8.x + Prettier 3 + AJV 8 (code quality tooling)
 - No backend, no database, no external network calls
 
 ## Coding Standards
@@ -30,6 +36,8 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 - **HTML:** Use semantic elements (e.g., `<main>`, `<h1>`, `<time>` for date/time)
 - **CSS:** Use system fonts or Flexbox/Grid; ensure accessibility
 - **JS:** Use `addEventListener`; no `eval()` or dynamic code execution
+- **Linting:** ESLint with browser ES2021, no-eval, no-implied-eval rules
+- **Formatting:** Prettier for JS/JSON/CSS/HTML/MD (2-space, semicolons, single quotes)
 - **Accessibility:** ARIA labels, keyboard focus, tab order for interactive elements
 - **Git:** Meaningful commit messages, clean history
 
@@ -42,7 +50,8 @@ A lightweight Manifest V3 Chrome extension displaying current time and date in a
 
 ## Current Status
 Story #6: Add Manifest V3 manifest.json (COMPLETE)  
-Story #7: Implement CSP-compliant extension popup scaffold (COMPLETE)
+Story #7: Implement CSP-compliant extension popup scaffold (COMPLETE)  
+Story #8: Set up baseline code quality tooling (IN PROGRESS - Step 1 Complete)
 
 ### Story #6 Acceptance Criteria (COMPLETE)
 - ✓ `manifest.json` exists at repository root with `manifest_version: 3`
@@ -55,21 +64,26 @@ Story #7: Implement CSP-compliant extension popup scaffold (COMPLETE)
 - ✓ Smoke test documentation in README.md
 
 ### Story #7 Implementation Steps (COMPLETE)
-1. ✓ **Step 1: Manifest alignment** - Verified `manifest.json` paths are correct (no changes needed)
-2. ✓ **Step 2: Popup HTML markup** - Implemented semantic elements (`<main>`, `<h1>`, `<time>`, `<button>`) with CSP compliance
-3. ✓ **Step 3: Popup JS behavior** - Implemented addEventListener wiring, timestamp display, and Refresh button functionality with defensive checks
-4. ✓ **Step 4: Popup CSS styling** - Added minimal accessible styling with Flexbox layout, button focus states, and tabular-nums
-5. ✓ **Step 5: Regression protection** - Added automated CSP check script and updated README with manual verification steps
+1. ✓ **Step 1: Manifest alignment** - Verified `manifest.json` paths are correct
+2. ✓ **Step 2: Popup HTML markup** - Implemented semantic elements with CSP compliance
+3. ✓ **Step 3: Popup JS behavior** - Implemented addEventListener wiring, timestamp display, Refresh button
+4. ✓ **Step 4: Popup CSS styling** - Added accessible styling with Flexbox layout
+5. ✓ **Step 5: Regression protection** - Added automated CSP check script
+
+### Story #8 Implementation Steps (IN PROGRESS)
+1. ✓ **Dependencies** - ESLint 8.x, Prettier 3, AJV 8, eslint-config-prettier installed
+2. Pending: ESLint and Prettier config files
+3. Pending: Manifest validation script
+4. Pending: npm scripts (lint, format, validate:manifest, check)
+5. Pending: Documentation updates
 
 ### Files
-- `manifest.json` - Complete MV3 manifest with popup and icons (no permissions, no service worker)
-- `assets/icons/icon16.png` - Toolbar icon
-- `assets/icons/icon32.png` - Toolbar HiDPI icon  
-- `assets/icons/icon48.png` - Extension management icon
-- `assets/icons/icon128.png` - Chrome Web Store icon
-- `README.md` - Installation, smoke testing, and manual verification documentation
-- `.gitignore` - Excludes virtual environment
-- `src/popup/popup.html` - Popup HTML scaffold (CSP-compliant, semantic structure)
+- `manifest.json` - Complete MV3 manifest with popup and icons
+- `assets/icons/icon{16,32,48,128}.png` - Extension icons
+- `README.md` - Installation, smoke testing, and verification docs
+- `.gitignore` - Excludes node_modules and virtual environments
+- `src/popup/popup.html` - Popup HTML scaffold (CSP-compliant)
 - `src/popup/popup.js` - Popup JavaScript (uses addEventListener)
 - `src/popup/popup.css` - Popup styles (system fonts, minimal)
-- `scripts/check-csp.js` - Automated CSP compliance check script
+- `scripts/check-csp.js` - Automated CSP compliance check
+- `schemas/manifest-v3-schema.json` - Pinned MV3 schema for offline validation
