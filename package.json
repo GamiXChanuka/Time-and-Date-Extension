@@ -4,10 +4,14 @@
   "private": true,
   "description": "A lightweight Chrome extension displaying current time and date",
   "scripts": {
-    "lint": "echo 'Linting not yet configured'",
-    "format": "echo 'Formatting not yet configured'",
-    "test": "echo 'Tests not yet configured'",
-    "check:csp": "node scripts/check-csp.js"
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{js,cjs,css,html,md,json}\" --ignore-path .gitignore",
+    "format:check": "prettier --check \"**/*.{js,cjs,css,html,md,json}\" --ignore-path .gitignore",
+    "validate:manifest": "node scripts/validate-manifest.js",
+    "check": "npm run lint && npm run format:check && npm run validate:manifest",
+    "check:csp": "node scripts/check-csp.js",
+    "test": "echo 'Tests not yet configured'"
   },
   "keywords": [
     "chrome-extension",
@@ -16,5 +20,12 @@
     "manifest-v3"
   ],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "ajv": "^8.18.0",
+    "ajv-formats": "^3.0.1",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.2",
+    "prettier": "^3.8.1"
+  }
 }

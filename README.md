@@ -68,10 +68,65 @@ npm run check:csp
 ```
 
 This scans `popup.html` for:
+
 - Inline `<script>` blocks (without `src` attribute)
 - Inline event handlers (`onclick`, `onload`, etc.)
 
 The script exits with code 0 on success, or 1 if violations are found.
+
+## Code Quality
+
+This project uses ESLint, Prettier, and AJV for automated code quality checks that run entirely offline.
+
+### Available Scripts
+
+| Script                      | Purpose                                                          |
+| --------------------------- | ---------------------------------------------------------------- |
+| `npm run lint`              | Lint all JavaScript files with ESLint                            |
+| `npm run lint:fix`          | Auto-fix ESLint issues where possible                            |
+| `npm run format`            | Format all files with Prettier                                   |
+| `npm run format:check`      | Check formatting without modifying files (CI-friendly)           |
+| `npm run validate:manifest` | Validate `manifest.json` against Manifest V3 schema              |
+| `npm run check`             | Run lint + format:check + validate:manifest (aggregate CI check) |
+| `npm run check:csp`         | Check CSP compliance in popup.html                               |
+
+### What Gets Enforced
+
+- **ESLint**: CSP-safe rules including `no-eval` and `no-implied-eval` (errors), plus baseline correctness rules (`no-undef`, `no-unused-vars`)
+- **Prettier**: Consistent formatting across JS, JSON, CSS, HTML, and Markdown (2-space indentation, semicolons, single quotes)
+- **Manifest Validation**: Full MV3 schema validation using a pinned local schema (no network calls)
+
+All validation runs offline using locally stored schemas and configurations.
+
+### Local Development Workflow
+
+```bash
+# Install dependencies
+npm ci
+
+# Run all checks (lint, format check, manifest validation)
+npm run check
+
+# Fix auto-fixable issues
+npm run lint:fix
+npm run format
+```
+
+### CI Workflow
+
+The same commands work in CI environments. The `npm run check` command is designed for CI usage:
+
+- Returns non-zero exit code on any failure
+- No interactive prompts
+- Runs entirely offline
+- Completes in under 10 seconds for this repository
+
+Example GitHub Actions workflow step:
+
+```yaml
+- run: npm ci
+- run: npm run check
+```
 
 ## Project Structure
 
