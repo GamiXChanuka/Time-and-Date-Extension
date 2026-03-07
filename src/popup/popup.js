@@ -1,29 +1,40 @@
 document.addEventListener('DOMContentLoaded', function () {
-  // Defensive checks: get all required DOM elements
-  const statusElement = document.getElementById('status');
-  const timestampElement = document.getElementById('timestamp');
-  const refreshButton = document.getElementById('refresh-btn');
+  var timeEl = document.getElementById('timeValue');
+  var dateEl = document.getElementById('dateValue');
+  var refreshBtn = document.getElementById('refreshBtn');
+  var statusEl = document.getElementById('status');
 
-  if (!statusElement || !timestampElement || !refreshButton) {
+  if (!timeEl || !dateEl || !refreshBtn) {
     console.error('Popup: Required DOM elements not found');
     return;
   }
 
-  // Function to update timestamp display
-  function updateTimestamp() {
-    const now = new Date();
-    const formattedTime = now.toLocaleString();
-    timestampElement.textContent = formattedTime;
-    timestampElement.setAttribute('datetime', now.toISOString());
+  function render() {
+    var now = new Date();
+
+    timeEl.textContent = now.toLocaleTimeString();
+    dateEl.textContent = now.toLocaleDateString();
+
+    var hours = String(now.getHours()).padStart(2, '0');
+    var minutes = String(now.getMinutes()).padStart(2, '0');
+    var seconds = String(now.getSeconds()).padStart(2, '0');
+    timeEl.setAttribute('datetime', hours + ':' + minutes + ':' + seconds);
+
+    var year = now.getFullYear();
+    var month = String(now.getMonth() + 1).padStart(2, '0');
+    var day = String(now.getDate()).padStart(2, '0');
+    dateEl.setAttribute('datetime', year + '-' + month + '-' + day);
   }
 
-  // Initial render: set status and display current timestamp
-  statusElement.textContent = 'Popup loaded';
-  updateTimestamp();
+  render();
 
-  // Wire Refresh button using addEventListener
-  refreshButton.addEventListener('click', function () {
-    updateTimestamp();
-    statusElement.textContent = 'Refreshed';
+  refreshBtn.addEventListener('click', function () {
+    render();
+    if (statusEl) {
+      statusEl.textContent = 'Time and date updated';
+      setTimeout(function () {
+        statusEl.textContent = '';
+      }, 1000);
+    }
   });
 });
