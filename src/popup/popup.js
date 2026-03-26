@@ -77,6 +77,11 @@ if (typeof document !== 'undefined') {
    * Update the time and date display elements.
    * Accepts an optional Date (defaults to now) for deterministic testing.
    * Catches and logs unexpected errors once to avoid console spam.
+   *
+   * Accessibility: #timeValue and #dateValue are non-live regions — they have
+   * no aria-live attribute so screen readers are not spammed every second.
+   * The #status live region is intentionally NOT updated here; it is only
+   * written to on explicit user-triggered refresh (see initPopup click handler).
    */
   var safeRender = function safeRender(now) {
     try {
