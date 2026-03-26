@@ -24,6 +24,18 @@ const EXCLUDED_DIRS = ['node_modules', '.git', 'dist', 'build', 'coverage'];
 /** Directories excluded from extension source scanning (tooling, not shipped). */
 const NON_SOURCE_DIRS = ['scripts', 'tests', 'schemas'];
 
+/** Root-level files excluded from extension source scanning (config/generated). */
+const NON_SOURCE_FILES = new Set([
+  'package.json',
+  'package-lock.json',
+  '.eslintrc.cjs',
+  '.prettierrc',
+  '.gitignore',
+  'CLAUDE.md',
+  'AGENTS.md',
+  'README.md',
+]);
+
 /** Binary file extensions excluded from content scanning. */
 const BINARY_EXTENSIONS = new Set([
   '.png',
@@ -108,7 +120,13 @@ function textFiles(files) {
 function sourceFiles(files) {
   return files.filter((f) => {
     const first = f.split(path.sep)[0];
-    return !NON_SOURCE_DIRS.includes(first);
+    if (NON_SOURCE_DIRS.includes(first)) {
+      return false;
+    }
+    if (NON_SOURCE_FILES.has(f)) {
+      return false;
+    }
+    return true;
   });
 }
 
@@ -300,15 +318,110 @@ function checkCSP(files) {
   return violations;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Offline-only checks                                                */
+/* ------------------------------------------------------------------ */
+
+/** Network API identifiers that must not appear in extension JS. */
+var NETWORK_APIS = [
+  { pattern: /\bfetch\s*\(/, label: 'fetch(' },
+  { pattern: /\bXMLHttpRequest\b/, label: 'XMLHttpRequest' },
+  { pattern: /\bWebSocket\b/, label: 'WebSocket' },
+  { pattern: /\bEventSource\b/, label: 'EventSource' },
+];
+
 /**
- * Runs offline-only checks.
- * Stub — implemented in a later step.
+ * Pattern matching remote URLs (http:// or https://).
+ * Lines containing chrome-extension:// are allowed and filtered out.
+ */
+var REMOTE_URL_PATTERN = /https?:\/\//;
+
+/** Allowlisted URL schemes that should not trigger violations. */
+var ALLOWED_SCHEME_PATTERN = /chrome-extension:\/\//;
+
+/**
+ * Pattern matching protocol-relative URLs in attribute or CSS contexts:
+ *   src="//...", href="//...", url(//...)
+ */
+var PROTOCOL_RELATIVE_PATTERN = /(?:src|href)\s*=\s*["']\/\/|url\(\s*["']?\/\//i;
+
+/**
+ * Runs offline-only checks on extension source files.
+ *
+ * JS rules:
+ *  - No fetch(, XMLHttpRequest, WebSocket, or EventSource usage.
+ *
+ * All text file rules:
+ *  - No http:// or https:// remote references.
+ *  - No protocol-relative // URLs in src/href/url() contexts.
+ *  - chrome-extension:// URLs are explicitly allowed.
+ *
  * @param {string[]} files - Discovered project files
  * @returns {Array<object>} Array of violation objects
  */
 function checkOffline(files) {
-  void files;
-  return [];
+  var violations = [];
+  var src = sourceFiles(files);
+
+  // --- JS network API checks ---
+  var jsFiles = filterByExt(src, '.js');
+  jsFiles.forEach(function (file) {
+    var content = readFileSafe(file);
+    if (!content) {
+      return;
+    }
+
+    NETWORK_APIS.forEach(function (api) {
+      var hits = scanLines(content, api.pattern);
+      hits.forEach(function (m) {
+        violations.push(
+          createViolation(
+            file,
+            m.line,
+            'Network API ' + api.label + ' violates offline-only policy: ' + snippet(m.text)
+          )
+        );
+      });
+    });
+  });
+
+  // --- Remote URL checks across all text source files ---
+  var scannable = textFiles(src);
+  scannable.forEach(function (file) {
+    var content = readFileSafe(file);
+    if (!content) {
+      return;
+    }
+
+    // http:// and https:// references (skip allowed schemes)
+    var remoteHits = scanLines(content, REMOTE_URL_PATTERN);
+    remoteHits.forEach(function (m) {
+      if (ALLOWED_SCHEME_PATTERN.test(m.text)) {
+        return;
+      }
+      violations.push(
+        createViolation(
+          file,
+          m.line,
+          'Remote URL reference violates offline-only policy: ' + snippet(m.text)
+        )
+      );
+    });
+
+    // Protocol-relative // in URL contexts
+    var protoRelHits = scanLines(content, PROTOCOL_RELATIVE_PATTERN);
+    protoRelHits.forEach(function (m) {
+      violations.push(
+        createViolation(
+          file,
+          m.line,
+          'Protocol-relative URL violates offline-only policy: ' + snippet(m.text)
+        )
+      );
+    });
+  });
+
+  return violations;
 }
 
 /**
