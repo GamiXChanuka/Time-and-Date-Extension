@@ -25,6 +25,7 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `tests/popup.helpers.test.js` — unit tests for formatting helpers
 - `tests/popup.dom.test.js` — DOM-level tests for popup rendering
 - `tests/check-readiness.test.js` — fixture-based tests for readiness checker
+- `tests/popup.settings.test.js` — unit tests for settings persistence and validation
 - `tests/check-version.test.js` — unit tests for version check and sync scripts
 - `tests/fixtures/readiness/` — known-good and known-bad fixture files
 - `assets/icons/` — extension icons (16/32/48/128px)
@@ -49,6 +50,28 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `npm run version:sync` — copy package.json version into manifest.json
 - `npm run check` — run lint + format:check + validate:manifest + version:check
 - `npm test` — run Jest unit tests
+
+## Settings & Persistence (popup.js)
+
+Settings are stored in `chrome.storage.local` under the key `dualClockSettings`. The data model:
+
+| Field               | Type    | Default    | Notes                   |
+| ------------------- | ------- | ---------- | ----------------------- |
+| `schemaVersion`     | number  | `1`        | For future migration    |
+| `dualClockEnabled`  | boolean | `false`    | Show/hide second clock  |
+| `primaryTimeZone`   | string  | `"system"` | `"system"` or IANA zone |
+| `secondaryTimeZone` | string  | `"UTC"`    | IANA zone identifier    |
+
+Key functions (exported for testing):
+
+- `TIMEZONE_OPTIONS` — curated list of ~12 IANA zones with friendly labels
+- `DEFAULT_SETTINGS` — default settings object
+- `validateTimeZone(tz)` — returns the zone if valid, `"system"` with console warning if invalid
+- `sanitizeSettings(raw)` — merges raw stored data with defaults, validates zones
+- `loadSettings()` — reads from `chrome.storage.local`, returns `Promise<settings>`; falls back to defaults when storage is unavailable
+- `saveSettings(settings)` — writes to `chrome.storage.local`, returns `Promise`; no-op when storage is unavailable
+
+The `"system"` sentinel means "use the browser's default timezone" (omit `timeZone` from `Intl.DateTimeFormat` options).
 
 ## Formatting Helpers (popup.js)
 
