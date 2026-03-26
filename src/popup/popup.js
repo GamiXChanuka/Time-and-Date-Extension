@@ -71,6 +71,8 @@ if (typeof document !== 'undefined') {
     var refreshBtn = document.getElementById('refreshBtn');
     var statusEl = document.getElementById('status');
 
+    var intervalId = null;
+
     if (!timeEl || !dateEl || !refreshBtn) {
       console.error('Popup: Required DOM elements not found');
       return;
@@ -87,7 +89,17 @@ if (typeof document !== 'undefined') {
       dateEl.setAttribute('datetime', toLocalISODate(now));
     }
 
+    function startTimer() {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      intervalId = setInterval(function () {
+        render();
+      }, 1000);
+    }
+
     render();
+    startTimer();
 
     refreshBtn.addEventListener('click', function () {
       render();
