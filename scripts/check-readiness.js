@@ -424,15 +424,126 @@ function checkOffline(files) {
   return violations;
 }
 
+/* ------------------------------------------------------------------ */
+/*  Manifest minimalism checks                                         */
+/* ------------------------------------------------------------------ */
+
+/** Allowed top-level keys in manifest.json for this project. */
+var ALLOWED_MANIFEST_KEYS = new Set([
+  'manifest_version',
+  'name',
+  'description',
+  'version',
+  'action',
+  'icons',
+  'content_security_policy',
+  'permissions',
+  'host_permissions',
+]);
+
+/** Insecure CSP directives that must not appear in extension_pages. */
+var INSECURE_CSP_DIRECTIVES = ["'unsafe-inline'", "'unsafe-eval'"];
+
 /**
  * Runs manifest minimalism checks.
- * Stub — implemented in a later step.
- * @param {string[]} files - Discovered project files
+ *
+ * Rules:
+ *  - manifest_version must be exactly 3.
+ *  - permissions must be absent or an empty array.
+ *  - host_permissions must be absent or an empty array.
+ *  - content_security_policy.extension_pages must exist and must not
+ *    contain insecure directives ('unsafe-inline', 'unsafe-eval').
+ *  - No unexpected top-level keys outside the allowed set.
+ *
+ * @param {string[]} files - Discovered project files (unused by this check)
  * @returns {Array<object>} Array of violation objects
  */
 function checkManifest(files) {
   void files;
-  return [];
+  var violations = [];
+  var content = readFileSafe('manifest.json');
+
+  if (!content) {
+    violations.push(createViolation('manifest.json', null, 'Unable to read manifest.json'));
+    return violations;
+  }
+
+  var manifest;
+  try {
+    manifest = JSON.parse(content);
+  } catch (e) {
+    violations.push(
+      createViolation('manifest.json', null, 'Invalid JSON in manifest.json: ' + e.message)
+    );
+    return violations;
+  }
+
+  // manifest_version must be 3
+  if (manifest.manifest_version !== 3) {
+    violations.push(
+      createViolation(
+        'manifest.json',
+        null,
+        'manifest_version must be 3 (got: ' + manifest.manifest_version + ')'
+      )
+    );
+  }
+
+  // permissions must be absent or empty
+  if (manifest.permissions && manifest.permissions.length > 0) {
+    violations.push(
+      createViolation(
+        'manifest.json',
+        null,
+        'permissions must be empty (found: ' + JSON.stringify(manifest.permissions) + ')'
+      )
+    );
+  }
+
+  // host_permissions must be absent or empty
+  if (manifest.host_permissions && manifest.host_permissions.length > 0) {
+    violations.push(
+      createViolation(
+        'manifest.json',
+        null,
+        'host_permissions must be empty (found: ' + JSON.stringify(manifest.host_permissions) + ')'
+      )
+    );
+  }
+
+  // content_security_policy.extension_pages must exist and be secure
+  var csp = manifest.content_security_policy;
+  if (!csp || !csp.extension_pages) {
+    violations.push(
+      createViolation(
+        'manifest.json',
+        null,
+        'content_security_policy.extension_pages is required but missing'
+      )
+    );
+  } else {
+    var policy = csp.extension_pages;
+    INSECURE_CSP_DIRECTIVES.forEach(function (directive) {
+      if (policy.indexOf(directive) !== -1) {
+        violations.push(
+          createViolation(
+            'manifest.json',
+            null,
+            'Insecure CSP directive ' + directive + ' found in extension_pages'
+          )
+        );
+      }
+    });
+  }
+
+  // No unexpected top-level keys
+  Object.keys(manifest).forEach(function (key) {
+    if (!ALLOWED_MANIFEST_KEYS.has(key)) {
+      violations.push(createViolation('manifest.json', null, 'Unexpected manifest key: ' + key));
+    }
+  });
+
+  return violations;
 }
 
 /**
