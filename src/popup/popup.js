@@ -70,6 +70,7 @@ if (typeof document !== 'undefined') {
   var _dateEl = null;
   var _refreshBtn = null;
   var _statusEl = null;
+  var _warnedMissing = false;
 
   /**
    * Update the time and date display elements.
@@ -124,8 +125,19 @@ if (typeof document !== 'undefined') {
     _refreshBtn = document.getElementById('refreshBtn');
     _statusEl = document.getElementById('status');
 
-    if (!_timeEl || !_dateEl || !_refreshBtn) {
-      console.warn('Popup: Required DOM elements not found');
+    if (!_warnedMissing && (!_timeEl || !_dateEl || !_refreshBtn)) {
+      var missing = [];
+      if (!_timeEl) {
+        missing.push('#timeValue');
+      }
+      if (!_dateEl) {
+        missing.push('#dateValue');
+      }
+      if (!_refreshBtn) {
+        missing.push('#refreshBtn');
+      }
+      console.warn('Popup: missing DOM elements: ' + missing.join(', '));
+      _warnedMissing = true;
     }
 
     safeRender();
