@@ -18,7 +18,13 @@
     "48": "assets/icons/icon48.png",
     "128": "assets/icons/icon128.png"
   },
-  "permissions": ["storage"],
+  "permissions": ["storage", "alarms", "notifications"],
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "chrome_url_overrides": {
+    "newtab": "src/newtab/newtab.html"
+  },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

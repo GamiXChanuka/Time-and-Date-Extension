@@ -437,6 +437,8 @@ var ALLOWED_MANIFEST_KEYS = new Set([
   'content_security_policy',
   'permissions',
   'host_permissions',
+  'background',
+  'chrome_url_overrides',
 ]);
 
 /** Insecure CSP directives that must not appear in extension_pages. */
@@ -462,7 +464,7 @@ function validateManifestObject(manifest) {
   }
 
   // permissions must only contain allowed values
-  var ALLOWED_PERMISSIONS = ['storage'];
+  var ALLOWED_PERMISSIONS = ['storage', 'alarms', 'notifications'];
   if (manifest.permissions && manifest.permissions.length > 0) {
     var disallowed = manifest.permissions.filter(function (p) {
       return ALLOWED_PERMISSIONS.indexOf(p) === -1;
