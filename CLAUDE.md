@@ -65,7 +65,7 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `alarmFormErrors` — validation error display (`aria-live="assertive"`)
 - `alarmListSection` — alarm list container section
 - `alarmList` — dynamic alarm card container
-- `alarmEmptyState` — empty state message (hidden when alarms exist)
+- `alarmEmptyState` — empty state message (visible by default, hidden by JS when alarms exist)
 
 ## Commands
 
