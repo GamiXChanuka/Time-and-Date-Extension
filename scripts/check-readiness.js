@@ -21,6 +21,9 @@ const MANIFEST_PATH = path.join(ROOT, 'manifest.json');
 /** Directories excluded from file discovery. */
 const EXCLUDED_DIRS = ['node_modules', '.git', 'dist', 'build', 'coverage'];
 
+/** Directories excluded from extension source scanning (tooling, not shipped). */
+const NON_SOURCE_DIRS = ['scripts', 'tests', 'schemas'];
+
 /** Binary file extensions excluded from content scanning. */
 const BINARY_EXTENSIONS = new Set([
   '.png',
@@ -95,6 +98,18 @@ function filterByExt(files, ext) {
  */
 function textFiles(files) {
   return files.filter((f) => TEXT_EXTENSIONS.has(path.extname(f).toLowerCase()));
+}
+
+/**
+ * Returns only extension source files (excludes tooling directories).
+ * @param {string[]} files - Array of relative file paths
+ * @returns {string[]} Source files only
+ */
+function sourceFiles(files) {
+  return files.filter((f) => {
+    const first = f.split(path.sep)[0];
+    return !NON_SOURCE_DIRS.includes(first);
+  });
 }
 
 /* ------------------------------------------------------------------ */
@@ -191,15 +206,98 @@ function checkRequiredFiles() {
   return missing;
 }
 
+/* ------------------------------------------------------------------ */
+/*  CSP safety checks                                                  */
+/* ------------------------------------------------------------------ */
+
+/** Truncates a string for use as a snippet in violation messages. */
+function snippet(text, maxLen) {
+  if (typeof maxLen !== 'number') {
+    maxLen = 60;
+  }
+  if (text.length <= maxLen) {
+    return text;
+  }
+  return text.slice(0, maxLen) + '…';
+}
+
 /**
- * Runs CSP compliance checks.
- * Stub — implemented in a later step.
+ * Runs CSP compliance checks across HTML and JS files.
+ *
+ * HTML rules:
+ *  - No <script> tags without a src attribute (inline scripts).
+ *  - No inline event handler attributes (on[a-z]+=).
+ *
+ * JS rules:
+ *  - No eval( calls.
+ *  - No new Function( calls.
+ *
  * @param {string[]} files - Discovered project files
  * @returns {Array<object>} Array of violation objects
  */
 function checkCSP(files) {
-  void files;
-  return [];
+  var violations = [];
+  var src = sourceFiles(files);
+
+  // --- HTML checks ---
+  var htmlFiles = filterByExt(src, '.html');
+  htmlFiles.forEach(function (file) {
+    var content = readFileSafe(file);
+    if (!content) {
+      return;
+    }
+
+    // Inline <script> tags (without src attribute)
+    var inlineScripts = scanLines(content, /<script(?![^>]*\bsrc\s*=)[^>]*>/i);
+    inlineScripts.forEach(function (m) {
+      violations.push(
+        createViolation(
+          file,
+          m.line,
+          'Inline <script> without src attribute (use external file instead): ' + snippet(m.text)
+        )
+      );
+    });
+
+    // Inline event handler attributes (onclick=, onload=, etc.)
+    var inlineHandlers = scanLines(content, /\bon[a-z]+=\s*/i);
+    inlineHandlers.forEach(function (m) {
+      violations.push(
+        createViolation(
+          file,
+          m.line,
+          'Inline event handler attribute (use addEventListener instead): ' + snippet(m.text)
+        )
+      );
+    });
+  });
+
+  // --- JS checks ---
+  var jsFiles = filterByExt(src, '.js');
+  jsFiles.forEach(function (file) {
+    var content = readFileSafe(file);
+    if (!content) {
+      return;
+    }
+
+    // eval( calls
+    var evalCalls = scanLines(content, /\beval\s*\(/);
+    evalCalls.forEach(function (m) {
+      violations.push(
+        createViolation(file, m.line, 'Use of eval( is not CSP-safe: ' + snippet(m.text))
+      );
+    });
+
+    // new Function( calls
+    var newFuncCalls = scanLines(content, /\bnew\s+Function\s*\(/);
+    newFuncCalls.forEach(function (m) {
+      violations.push(
+        createViolation(file, m.line, 'Use of new Function( is not CSP-safe: ' + snippet(m.text))
+      );
+    });
+  });
+
+  return violations;
 }
 
 /**
