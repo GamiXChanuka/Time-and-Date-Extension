@@ -143,8 +143,17 @@ if (typeof document !== 'undefined') {
     safeRender();
     startTicker();
 
-    window.addEventListener('beforeunload', function () {
+    window.addEventListener('pagehide', function () {
       stopTicker();
+    });
+
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'hidden') {
+        stopTicker();
+      } else {
+        safeRender();
+        startTicker();
+      }
     });
 
     if (_refreshBtn) {
