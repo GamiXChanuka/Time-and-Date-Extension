@@ -231,6 +231,23 @@ describe('validateManifestObject', function () {
     expect(violations).toHaveLength(0);
   });
 
+  it('allows the alarms permission', function () {
+    var violations = validateManifestObject(goodManifest({ permissions: ['alarms'] }));
+    expect(violations).toHaveLength(0);
+  });
+
+  it('allows the notifications permission', function () {
+    var violations = validateManifestObject(goodManifest({ permissions: ['notifications'] }));
+    expect(violations).toHaveLength(0);
+  });
+
+  it('allows all required permissions together', function () {
+    var violations = validateManifestObject(
+      goodManifest({ permissions: ['storage', 'alarms', 'notifications'] })
+    );
+    expect(violations).toHaveLength(0);
+  });
+
   it('fails if a disallowed permission is present', function () {
     var violations = validateManifestObject(goodManifest({ permissions: ['tabs'] }));
     expect(
@@ -301,13 +318,21 @@ describe('validateManifestObject', function () {
     ).toBe(true);
   });
 
-  it('fails if manifest contains unexpected keys', function () {
+  it('allows background and chrome_url_overrides keys', function () {
     var violations = validateManifestObject(
-      goodManifest({ background: { service_worker: 'bg.js' } })
+      goodManifest({
+        background: { service_worker: 'bg.js' },
+        chrome_url_overrides: { newtab: 'newtab.html' },
+      })
     );
+    expect(violations).toHaveLength(0);
+  });
+
+  it('fails if manifest contains unexpected keys', function () {
+    var violations = validateManifestObject(goodManifest({ devtools_page: 'devtools.html' }));
     expect(
       violations.some(function (v) {
-        return v.message.match(/Unexpected.*background/);
+        return v.message.match(/Unexpected.*devtools_page/);
       })
     ).toBe(true);
   });

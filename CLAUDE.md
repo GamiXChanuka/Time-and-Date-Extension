@@ -17,6 +17,10 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `src/popup/popup.html` — popup UI markup
 - `src/popup/popup.css` — popup styles
 - `src/popup/popup.js` — popup behavior
+- `src/newtab/newtab.html` — New Tab alarm clock UI markup
+- `src/newtab/newtab.css` — New Tab alarm clock styles
+- `src/newtab/newtab.js` — New Tab alarm clock behavior
+- `src/background/service-worker.js` — background service worker for alarm scheduling
 - `scripts/check-csp.js` — CSP compliance validator
 - `scripts/check-readiness.js` — MV3/CSP/offline readiness checker
 - `scripts/validate-manifest.js` — MV3 manifest validator
