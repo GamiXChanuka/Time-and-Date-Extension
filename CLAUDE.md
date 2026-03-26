@@ -135,6 +135,14 @@ Module-scoped functions inside the `typeof document` guard:
 
 All popup styles should reference these tokens rather than hard-coded values.
 
+## Weather Feature (popup)
+
+The popup displays per-clock weather using the RapidAPI current weather endpoint. Configuration:
+
+- `manifest.json` declares `host_permissions: ["https://weather-api167.p.rapidapi.com/*"]` for fetch access
+- `scripts/check-readiness.js` allowlists: `NETWORK_API_ALLOWED_FILES` (popup files permitted to use `fetch()`), `ALLOWED_REMOTE_ORIGINS` (RapidAPI URL), and `ALLOWED_HOST_PERMISSIONS` (manifest host permission)
+- `src/popup/weather.js` — weather fetch, caching, and rendering module (loaded by popup.html)
+
 ## Code Guidelines
 
 - No inline scripts, styles, or event handlers (CSP compliance)
