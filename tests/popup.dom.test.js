@@ -236,3 +236,106 @@ describe('Popup with missing DOM elements', function () {
     spyWarn.mockRestore();
   });
 });
+
+describe('Refresh button keyboard accessibility', function () {
+  beforeEach(function () {
+    jest.useFakeTimers();
+    loadPopup();
+  });
+
+  afterEach(function () {
+    jest.useRealTimers();
+  });
+
+  it('is a <button> element with type="button"', function () {
+    var btn = document.getElementById('refreshBtn');
+    expect(btn).not.toBeNull();
+    expect(btn.tagName).toBe('BUTTON');
+    expect(btn.getAttribute('type')).toBe('button');
+  });
+
+  it('is not removed from tab order via tabindex', function () {
+    var btn = document.getElementById('refreshBtn');
+    /* A native <button> without a negative tabindex is keyboard-reachable */
+    var tabindex = btn.getAttribute('tabindex');
+    expect(tabindex === null || Number(tabindex) >= 0).toBe(true);
+  });
+
+  it('has no inline event handler attributes', function () {
+    var btn = document.getElementById('refreshBtn');
+    expect(btn.getAttribute('onclick')).toBeNull();
+    expect(btn.getAttribute('onkeydown')).toBeNull();
+    expect(btn.getAttribute('onkeypress')).toBeNull();
+    expect(btn.getAttribute('onkeyup')).toBeNull();
+  });
+
+  it('click (browser Enter/Space proxy) triggers refresh without console errors', function () {
+    var spyError = jest.spyOn(console, 'error').mockImplementation(function () {});
+    var btn = document.getElementById('refreshBtn');
+    var timeEl = document.getElementById('timeValue');
+
+    var dtBefore = timeEl.getAttribute('datetime');
+
+    /* Advance time so a fresh render produces a different timestamp */
+    jest.advanceTimersByTime(2000);
+
+    /* btn.click() is what browsers fire for Enter/Space on a focused <button> */
+    btn.click();
+
+    var dtAfter = timeEl.getAttribute('datetime');
+    expect(dtAfter).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+    expect(dtAfter).not.toBe(dtBefore);
+
+    /* No errors should have been logged */
+    expect(spyError).not.toHaveBeenCalled();
+    spyError.mockRestore();
+  });
+
+  it('dispatched Enter keydown on the button does not throw', function () {
+    var btn = document.getElementById('refreshBtn');
+
+    expect(function () {
+      btn.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    }).not.toThrow();
+  });
+
+  it('dispatched Space keydown on the button does not throw', function () {
+    var btn = document.getElementById('refreshBtn');
+
+    expect(function () {
+      btn.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true }));
+    }).not.toThrow();
+  });
+
+  it('gracefully handles a throwing refresh path and remains usable', function () {
+    var spyError = jest.spyOn(console, 'error').mockImplementation(function () {});
+    var btn = document.getElementById('refreshBtn');
+    var timeEl = document.getElementById('timeValue');
+
+    /* Sabotage toISOString so safeRender's inner try/catch fires */
+    var origToISO = Date.prototype.toISOString;
+    Date.prototype.toISOString = function () {
+      // eslint-disable-line no-extend-native
+      throw new Error('Simulated failure');
+    };
+
+    /* First click should not throw despite the sabotage */
+    expect(function () {
+      btn.click();
+    }).not.toThrow();
+
+    /* Error should have been caught and logged */
+    expect(spyError).toHaveBeenCalled();
+
+    /* Restore normal behavior */
+    Date.prototype.toISOString = origToISO; // eslint-disable-line no-extend-native
+    spyError.mockClear();
+
+    /* Second click should work normally — button is still functional */
+    btn.click();
+    var dtAfter = timeEl.getAttribute('datetime');
+    expect(dtAfter).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+
+    spyError.mockRestore();
+  });
+});
