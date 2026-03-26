@@ -101,6 +101,13 @@ if (typeof document !== 'undefined') {
     render();
     startTimer();
 
+    window.addEventListener('beforeunload', function () {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    });
+
     refreshBtn.addEventListener('click', function () {
       render();
       if (statusEl) {
