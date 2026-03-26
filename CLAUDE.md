@@ -46,7 +46,7 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `npm run validate:manifest` — manifest v3 schema validation
 - `npm run version:check` — verify package.json and manifest.json versions match
 - `npm run version:sync` — copy package.json version into manifest.json
-- `npm run check` — run lint + format:check + validate:manifest
+- `npm run check` — run lint + format:check + validate:manifest + version:check
 - `npm test` — run Jest unit tests
 
 ## Formatting Helpers (popup.js)
