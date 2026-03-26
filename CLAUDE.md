@@ -51,6 +51,22 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `secondaryClock` — secondary clock container section (hidden by default)
 - `status` — live region for screen reader announcements
 
+### New Tab (newtab.html)
+
+- `alarmFormSection` — alarm form container section
+- `alarmFormHeading` — form heading (changes between "New Alarm" and "Edit Alarm")
+- `alarmForm` — the `<form>` element
+- `alarmTimeInput` — `<input type="time">` for alarm time
+- `alarmLabelInput` — `<input type="text">` for optional label
+- `alarmRepeatDays` — container for repeat day checkboxes
+- `alarmEnabledToggle` — checkbox to enable/disable alarm on creation
+- `alarmSaveBtn` — Save/Update button
+- `alarmCancelBtn` — Cancel button (hidden in create mode)
+- `alarmFormErrors` — validation error display (`aria-live="assertive"`)
+- `alarmListSection` — alarm list container section
+- `alarmList` — dynamic alarm card container
+- `alarmEmptyState` — empty state message (hidden when alarms exist)
+
 ## Commands
 
 - `npm run lint` — ESLint check
