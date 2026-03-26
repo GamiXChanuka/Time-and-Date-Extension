@@ -236,6 +236,9 @@ if (typeof document !== 'undefined') {
   var _secondaryTimeEl = null;
   var _secondaryDateEl = null;
   var _secondaryClockEl = null;
+  var _dualClockToggleEl = null;
+  var _primaryTzSelectEl = null;
+  var _secondaryTzSelectEl = null;
   var _refreshBtn = null;
   var _statusEl = null;
   var _statusClearTimer = null;
@@ -278,7 +281,7 @@ if (typeof document !== 'undefined') {
    * Accessibility: clock <time> elements are non-live regions — they have
    * no aria-live attribute so screen readers are not spammed every second.
    * The #status live region is intentionally NOT updated here; it is only
-   * written to on explicit user-triggered refresh (see initPopup click handler).
+   * written to on explicit user-triggered actions (refresh, toggle, tz change).
    */
   var safeRender = function safeRender(now) {
     try {
@@ -299,6 +302,52 @@ if (typeof document !== 'undefined') {
         _renderErrorLogged = true;
       }
     }
+  };
+
+  /**
+   * Post a polite screen-reader announcement to the #status live region.
+   * Clears → sets (via setTimeout 0 to force re-announcement) → auto-clears.
+   * Only called on user-triggered actions, never on 1Hz tick updates.
+   */
+  var _announceStatus = function _announceStatus(message) {
+    if (!_statusEl) {
+      return;
+    }
+    if (_statusClearTimer) {
+      clearTimeout(_statusClearTimer);
+      _statusClearTimer = null;
+    }
+    _statusEl.textContent = '';
+    _statusClearTimer = setTimeout(function () {
+      _statusEl.textContent = message;
+      _statusClearTimer = setTimeout(function () {
+        _statusEl.textContent = '';
+        _statusClearTimer = null;
+      }, 1000);
+    }, 0);
+  };
+
+  /**
+   * Apply a settings object to the UI controls and internal state.
+   * Updates toggle, selects, secondary clock visibility, and re-renders.
+   */
+  var _applySettings = function _applySettings(settings) {
+    _settings = settings;
+
+    if (_dualClockToggleEl) {
+      _dualClockToggleEl.checked = _settings.dualClockEnabled;
+    }
+    if (_primaryTzSelectEl) {
+      _primaryTzSelectEl.value = _settings.primaryTimeZone;
+    }
+    if (_secondaryTzSelectEl) {
+      _secondaryTzSelectEl.value = _settings.secondaryTimeZone;
+    }
+    if (_secondaryClockEl) {
+      _secondaryClockEl.hidden = !_settings.dualClockEnabled;
+    }
+
+    safeRender();
   };
 
   /**
@@ -327,14 +376,20 @@ if (typeof document !== 'undefined') {
 
   /**
    * Initialise the popup: query DOM elements, perform first render,
-   * start the ticker, and wire up event listeners.
+   * start the ticker, load persisted settings, and wire up event listeners.
    */
   var initPopup = function initPopup() {
+    /* Query clock display elements */
     _timeEl = document.getElementById('timeValue');
     _dateEl = document.getElementById('dateValue');
     _secondaryTimeEl = document.getElementById('secondaryTimeValue');
     _secondaryDateEl = document.getElementById('secondaryDateValue');
     _secondaryClockEl = document.getElementById('secondaryClock');
+
+    /* Query control elements */
+    _dualClockToggleEl = document.getElementById('dualClockToggle');
+    _primaryTzSelectEl = document.getElementById('primaryTzSelect');
+    _secondaryTzSelectEl = document.getElementById('secondaryTzSelect');
     _refreshBtn = document.getElementById('refreshBtn');
     _statusEl = document.getElementById('status');
 
@@ -353,8 +408,15 @@ if (typeof document !== 'undefined') {
       _warnedMissing = true;
     }
 
+    /* Render immediately with defaults, then async-load persisted settings */
     safeRender();
     startTicker();
+
+    loadSettings().then(function (settings) {
+      _applySettings(settings);
+    });
+
+    /* --- Lifecycle listeners --- */
 
     window.addEventListener('pagehide', function () {
       stopTicker();
@@ -373,34 +435,48 @@ if (typeof document !== 'undefined') {
       }
     });
 
+    /* --- Control event listeners (CSP-safe, no inline handlers) --- */
+
     if (_refreshBtn) {
       _refreshBtn.addEventListener('click', function () {
         try {
           safeRender();
-          if (_statusEl) {
-            /* Cancel any pending clear so rapid clicks don't race */
-            if (_statusClearTimer) {
-              clearTimeout(_statusClearTimer);
-              _statusClearTimer = null;
-            }
-            /*
-             * Clear then re-set the status text so screen readers
-             * re-announce even when the message is the same string.
-             * The brief empty value forces a DOM change that triggers
-             * a new polite announcement on the next content write.
-             */
-            _statusEl.textContent = '';
-            _statusClearTimer = setTimeout(function () {
-              _statusEl.textContent = 'Time and date updated';
-              _statusClearTimer = setTimeout(function () {
-                _statusEl.textContent = '';
-                _statusClearTimer = null;
-              }, 1000);
-            }, 0);
-          }
+          _announceStatus('Time and date updated');
         } catch (err) {
           console.error('Popup: refresh error', err);
         }
+      });
+    }
+
+    if (_dualClockToggleEl) {
+      _dualClockToggleEl.addEventListener('change', function () {
+        _settings.dualClockEnabled = _dualClockToggleEl.checked;
+        if (_secondaryClockEl) {
+          _secondaryClockEl.hidden = !_settings.dualClockEnabled;
+        }
+        saveSettings(_settings);
+        safeRender();
+        _announceStatus(
+          _settings.dualClockEnabled ? 'Second clock enabled' : 'Second clock disabled'
+        );
+      });
+    }
+
+    if (_primaryTzSelectEl) {
+      _primaryTzSelectEl.addEventListener('change', function () {
+        _settings.primaryTimeZone = _primaryTzSelectEl.value;
+        saveSettings(_settings);
+        safeRender();
+        _announceStatus('Primary time zone changed');
+      });
+    }
+
+    if (_secondaryTzSelectEl) {
+      _secondaryTzSelectEl.addEventListener('change', function () {
+        _settings.secondaryTimeZone = _secondaryTzSelectEl.value;
+        saveSettings(_settings);
+        safeRender();
+        _announceStatus('Secondary time zone changed');
       });
     }
   };
