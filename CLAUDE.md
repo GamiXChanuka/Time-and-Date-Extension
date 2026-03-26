@@ -19,6 +19,7 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `src/popup/popup.js` — popup behavior
 - `scripts/check-csp.js` — CSP compliance validator
 - `scripts/validate-manifest.js` — MV3 manifest validator
+- `tests/popup.helpers.test.js` — unit tests for formatting helpers
 - `assets/icons/` — extension icons (16/32/48/128px)
 
 ## Stable DOM IDs (do not rename)
@@ -37,6 +38,7 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `npm run check:csp` — CSP compliance check
 - `npm run validate:manifest` — manifest v3 schema validation
 - `npm run check` — run lint + format:check + validate:manifest
+- `npm test` — run Jest unit tests
 
 ## Formatting Helpers (popup.js)
 
