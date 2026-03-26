@@ -15,6 +15,7 @@ module.exports = {
 
   globals: {
     chrome: 'readonly',
+    Weather: 'readonly',
   },
 
   extends: [

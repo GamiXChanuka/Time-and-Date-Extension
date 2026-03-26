@@ -83,7 +83,7 @@ describe('Popup DOM rendering', function () {
        that re-triggers screen reader announcement on repeated clicks */
     jest.advanceTimersByTime(0);
 
-    expect(statusEl.textContent).toBe('Time and date updated');
+    expect(statusEl.textContent).toBe('Time, date, and weather updated');
   });
 });
 
