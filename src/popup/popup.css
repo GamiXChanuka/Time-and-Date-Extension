@@ -65,7 +65,7 @@ main {
 }
 
 #refreshBtn:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 3px solid #1a1a1a;
   outline-offset: 2px;
 }
 
