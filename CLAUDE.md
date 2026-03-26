@@ -32,9 +32,16 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 
 ## Stable DOM IDs (do not rename)
 
-- `timeValue` — `<time>` element for time display
-- `dateValue` — `<time>` element for date display
+- `timeValue` — `<time>` element for primary time display
+- `dateValue` — `<time>` element for primary date display
+- `secondaryTimeValue` — `<time>` element for secondary time display
+- `secondaryDateValue` — `<time>` element for secondary date display
 - `refreshBtn` — refresh button
+- `dualClockToggle` — checkbox to enable/disable second clock
+- `primaryTzSelect` — primary clock timezone selector
+- `secondaryTzSelect` — secondary clock timezone selector
+- `primaryClock` — primary clock container section
+- `secondaryClock` — secondary clock container section (hidden by default)
 - `status` — live region for screen reader announcements
 
 ## Commands
@@ -99,7 +106,7 @@ Module-scoped functions inside the `typeof document` guard:
 
 - **Colors:** `--color-bg`, `--color-text`, `--color-muted`, `--color-border`, `--color-focus`
 - **Button colors:** `--color-btn-bg`, `--color-btn-hover`, `--color-btn-active`
-- **Typography:** `--font-family`, `--font-size-time/date/btn`, `--font-weight-time/date/btn`, `--line-height-time/date`
+- **Typography:** `--font-family`, `--font-size-time/date/btn/small`, `--font-weight-time/date/btn`, `--line-height-time/date`
 - **Spacing:** `--space-1` (0.25rem) through `--space-4` (1.5rem)
 - **Radius:** `--radius`
 
