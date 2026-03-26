@@ -226,11 +226,27 @@ describe('validateManifestObject', function () {
     ).toBe(true);
   });
 
-  it('fails if permissions is non-empty', function () {
+  it('allows the storage permission', function () {
     var violations = validateManifestObject(goodManifest({ permissions: ['storage'] }));
+    expect(violations).toHaveLength(0);
+  });
+
+  it('fails if a disallowed permission is present', function () {
+    var violations = validateManifestObject(goodManifest({ permissions: ['tabs'] }));
     expect(
       violations.some(function (v) {
-        return v.message.match(/permissions/);
+        return v.message.match(/disallowed permissions/);
+      })
+    ).toBe(true);
+  });
+
+  it('fails if disallowed permission is mixed with allowed ones', function () {
+    var violations = validateManifestObject(
+      goodManifest({ permissions: ['storage', 'activeTab'] })
+    );
+    expect(
+      violations.some(function (v) {
+        return v.message.match(/disallowed permissions/);
       })
     ).toBe(true);
   });

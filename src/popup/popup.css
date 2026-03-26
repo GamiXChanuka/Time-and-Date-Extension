@@ -16,6 +16,7 @@
   --font-size-time: 2rem;
   --font-size-date: 1rem;
   --font-size-btn: 0.875rem;
+  --font-size-small: 0.75rem;
   --font-weight-time: 600;
   --font-weight-date: 400;
   --font-weight-btn: 500;
@@ -38,7 +39,7 @@ body {
   padding: var(--space-3);
   background-color: var(--color-bg);
   color: var(--color-text);
-  min-width: 240px;
+  min-width: 280px;
 }
 
 main {
@@ -53,18 +54,72 @@ main {
   margin-bottom: var(--space-2);
 }
 
-.content {
+/* --- Clock blocks --- */
+
+.clocks {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
   flex: 1;
-  gap: var(--space-1);
-  padding: 0 var(--space-2);
+  gap: var(--space-3);
+}
+
+.clock-block {
   text-align: center;
 }
 
-#timeValue {
+.clock-block[hidden] {
+  display: none;
+}
+
+.clock-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+  padding: 0 var(--space-2);
+}
+
+.clock-label {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-btn);
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tz-label {
+  font-size: var(--font-size-small);
+  color: var(--color-muted);
+  margin-left: auto;
+}
+
+.clock-header select {
+  font-family: var(--font-family);
+  font-size: var(--font-size-small);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+  max-width: 10rem;
+}
+
+.clock-header select:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.clock-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
+}
+
+#timeValue,
+#secondaryTimeValue {
   display: block;
   font-size: var(--font-size-time);
   font-weight: var(--font-weight-time);
@@ -76,7 +131,8 @@ main {
   text-overflow: ellipsis;
 }
 
-#dateValue {
+#dateValue,
+#secondaryDateValue {
   display: block;
   font-size: var(--font-size-date);
   font-weight: var(--font-weight-date);
@@ -84,6 +140,41 @@ main {
   color: var(--color-muted);
   max-width: 100%;
 }
+
+/* --- Settings controls --- */
+
+.settings {
+  display: flex;
+  align-items: center;
+  padding-top: var(--space-3);
+  margin-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-btn);
+  font-weight: var(--font-weight-btn);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.toggle-label input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--color-btn-bg);
+}
+
+.toggle-label input[type='checkbox']:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* --- Refresh button --- */
 
 #refreshBtn {
   padding: var(--space-2) var(--space-3);
@@ -108,6 +199,8 @@ main {
 #refreshBtn:active {
   background-color: var(--color-btn-active);
 }
+
+/* --- Visually-hidden status region --- */
 
 #status {
   position: absolute;
