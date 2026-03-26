@@ -12,6 +12,12 @@
 
   var storage = self.AlarmStorage;
 
+  if (!storage) {
+    console.error(
+      'AlarmStorage module failed to load — alarm-storage.js may be missing or blocked'
+    );
+  }
+
   /* ---------------------------------------------------------------- */
   /*  Constants                                                        */
   /* ---------------------------------------------------------------- */
@@ -636,8 +642,21 @@
       _cancelBtn.addEventListener('click', handleCancel);
     }
 
-    // Initial load
-    refreshList();
+    // Initial load — guard against missing storage module
+    if (!storage) {
+      if (_emptyState) {
+        _emptyState.textContent = 'Alarm Clock failed to load. Please reload the page.';
+      }
+      return;
+    }
+
+    refreshList().catch(function (err) {
+      console.error('Failed to load alarms:', err);
+      if (_emptyState) {
+        _emptyState.textContent = 'Could not load alarms. Please reload the page.';
+        _emptyState.hidden = false;
+      }
+    });
   }
 
   document.addEventListener('DOMContentLoaded', initNewTab);
