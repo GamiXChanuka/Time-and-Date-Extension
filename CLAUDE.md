@@ -21,6 +21,7 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `src/newtab/newtab.css` — New Tab alarm clock styles
 - `src/newtab/newtab.js` — New Tab alarm clock behavior
 - `src/background/service-worker.js` — background service worker for alarm scheduling
+- `src/alarm-storage.js` — alarm data model, validation, and chrome.storage.local persistence
 - `scripts/check-csp.js` — CSP compliance validator
 - `scripts/check-readiness.js` — MV3/CSP/offline readiness checker
 - `scripts/validate-manifest.js` — MV3 manifest validator
@@ -31,6 +32,7 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `tests/check-readiness.test.js` — fixture-based tests for readiness checker
 - `tests/popup.settings.test.js` — unit tests for settings persistence and validation
 - `tests/check-version.test.js` — unit tests for version check and sync scripts
+- `tests/alarm-storage.test.js` — unit tests for alarm data model and persistence
 - `tests/fixtures/readiness/` — known-good and known-bad fixture files
 - `assets/icons/` — extension icons (16/32/48/128px)
 
