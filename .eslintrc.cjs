@@ -41,6 +41,19 @@ module.exports = {
 
   overrides: [
     {
+      files: ['src/background/**/*.js'],
+      env: {
+        browser: false,
+        serviceworker: true,
+        es2021: true,
+      },
+      globals: {
+        chrome: 'readonly',
+        importScripts: 'readonly',
+        self: 'readonly',
+      },
+    },
+    {
       files: ['scripts/**/*.js'],
       env: {
         browser: false,

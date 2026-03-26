@@ -33,6 +33,7 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `tests/popup.settings.test.js` — unit tests for settings persistence and validation
 - `tests/check-version.test.js` — unit tests for version check and sync scripts
 - `tests/alarm-storage.test.js` — unit tests for alarm data model and persistence
+- `tests/service-worker.test.js` — unit tests for scheduling, recovery, and alarm firing
 - `tests/fixtures/readiness/` — known-good and known-bad fixture files
 - `assets/icons/` — extension icons (16/32/48/128px)
 

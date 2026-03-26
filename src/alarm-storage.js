@@ -590,27 +590,35 @@ function saveSnoozes(snoozes) {
 /*  Exports                                                            */
 /* ------------------------------------------------------------------ */
 
+var _alarmStorageExports = {
+  ALARM_STORAGE_KEY: ALARM_STORAGE_KEY,
+  SNOOZE_STORAGE_KEY: SNOOZE_STORAGE_KEY,
+  ALARM_SCHEMA_VERSION: ALARM_SCHEMA_VERSION,
+  MAX_LABEL_LENGTH: MAX_LABEL_LENGTH,
+  generateId: generateId,
+  validateAlarm: validateAlarm,
+  sanitizeAlarm: sanitizeAlarm,
+  computeNextFireAt: computeNextFireAt,
+  migrateAlarms: migrateAlarms,
+  migrateSnoozes: migrateSnoozes,
+  loadAlarms: loadAlarms,
+  saveAlarms: saveAlarms,
+  getAlarm: getAlarm,
+  createAlarm: createAlarm,
+  updateAlarm: updateAlarm,
+  deleteAlarm: deleteAlarm,
+  loadSnoozes: loadSnoozes,
+  saveSnoozes: saveSnoozes,
+};
+
+// Node.js (tests)
 // eslint-disable-next-line no-undef
 if (typeof module !== 'undefined' && module.exports) {
   // eslint-disable-next-line no-undef
-  module.exports = {
-    ALARM_STORAGE_KEY: ALARM_STORAGE_KEY,
-    SNOOZE_STORAGE_KEY: SNOOZE_STORAGE_KEY,
-    ALARM_SCHEMA_VERSION: ALARM_SCHEMA_VERSION,
-    MAX_LABEL_LENGTH: MAX_LABEL_LENGTH,
-    generateId: generateId,
-    validateAlarm: validateAlarm,
-    sanitizeAlarm: sanitizeAlarm,
-    computeNextFireAt: computeNextFireAt,
-    migrateAlarms: migrateAlarms,
-    migrateSnoozes: migrateSnoozes,
-    loadAlarms: loadAlarms,
-    saveAlarms: saveAlarms,
-    getAlarm: getAlarm,
-    createAlarm: createAlarm,
-    updateAlarm: updateAlarm,
-    deleteAlarm: deleteAlarm,
-    loadSnoozes: loadSnoozes,
-    saveSnoozes: saveSnoozes,
-  };
+  module.exports = _alarmStorageExports;
+}
+
+// Service worker (importScripts)
+if (typeof self !== 'undefined' && typeof self.AlarmStorage === 'undefined') {
+  self.AlarmStorage = _alarmStorageExports;
 }
