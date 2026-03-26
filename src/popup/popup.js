@@ -76,8 +76,10 @@ if (typeof document !== 'undefined') {
       return;
     }
 
-    function render() {
-      var now = new Date();
+    function render(now) {
+      if (!now) {
+        now = new Date();
+      }
 
       timeEl.textContent = formatTime(now);
       dateEl.textContent = formatDate(now);
