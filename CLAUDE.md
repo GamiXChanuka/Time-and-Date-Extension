@@ -52,6 +52,10 @@ Top-level functions exported for testing via conditional `module.exports`:
 
 Formatter instances are cached in `_formatterCache` keyed by locale and type. All helpers fall back to `toLocaleString` methods if `Intl` is unavailable.
 
+## Popup Render Function (popup.js)
+
+`render(now)` — shared function that updates both time and date UI in one pass. Accepts an optional `Date` parameter (defaults to `new Date()`) for deterministic testing. Updates `textContent` and `datetime` attributes on `#timeValue` and `#dateValue`.
+
 ## Code Guidelines
 
 - No inline scripts, styles, or event handlers (CSP compliance)

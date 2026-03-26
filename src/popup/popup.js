@@ -71,13 +71,17 @@ if (typeof document !== 'undefined') {
     var refreshBtn = document.getElementById('refreshBtn');
     var statusEl = document.getElementById('status');
 
+    var intervalId = null;
+
     if (!timeEl || !dateEl || !refreshBtn) {
       console.error('Popup: Required DOM elements not found');
       return;
     }
 
-    function render() {
-      var now = new Date();
+    function render(now) {
+      if (!now) {
+        now = new Date();
+      }
 
       timeEl.textContent = formatTime(now);
       dateEl.textContent = formatDate(now);
@@ -85,7 +89,24 @@ if (typeof document !== 'undefined') {
       dateEl.setAttribute('datetime', toLocalISODate(now));
     }
 
+    function startTimer() {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+      intervalId = setInterval(function () {
+        render();
+      }, 1000);
+    }
+
     render();
+    startTimer();
+
+    window.addEventListener('beforeunload', function () {
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    });
 
     refreshBtn.addEventListener('click', function () {
       render();
