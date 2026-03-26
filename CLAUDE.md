@@ -52,9 +52,14 @@ Top-level functions exported for testing via conditional `module.exports`:
 
 Formatter instances are cached in `_formatterCache` keyed by locale and type. All helpers fall back to `toLocaleString` methods if `Intl` is unavailable.
 
-## Popup Render Function (popup.js)
+## Popup Lifecycle Functions (popup.js)
 
-`render(now)` — shared function that updates both time and date UI in one pass. Accepts an optional `Date` parameter (defaults to `new Date()`) for deterministic testing. Updates `textContent` and `datetime` attributes on `#timeValue` and `#dateValue`.
+Module-scoped functions inside the `typeof document` guard:
+
+- `safeRender(now)` — updates time and date UI; accepts optional `Date` (defaults to `new Date()`); tolerates missing DOM elements
+- `startTicker()` — starts 1-second auto-update interval; no-op if already running
+- `stopTicker()` — clears interval and nulls `_intervalId`; idempotent
+- `initPopup()` — queries DOM elements, calls `safeRender()` + `startTicker()`, wires event listeners; called on `DOMContentLoaded`
 
 ## Code Guidelines
 
