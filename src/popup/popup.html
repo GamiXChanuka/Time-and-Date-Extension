@@ -15,10 +15,66 @@
           <span aria-hidden="true">↻</span>
         </button>
       </header>
-      <div class="content">
-        <time id="timeValue" datetime="00:00:00">--:--:--</time>
-        <time id="dateValue" datetime="2000-01-01">--/--/----</time>
+
+      <div class="clocks">
+        <section class="clock-block" id="primaryClock" aria-label="Primary clock">
+          <div class="clock-header">
+            <span class="clock-label" id="primaryClockLabel">Primary</span>
+            <label class="tz-label" for="primaryTzSelect">Time zone</label>
+            <select id="primaryTzSelect">
+              <option value="system">System default</option>
+              <option value="UTC">UTC</option>
+              <option value="America/New_York">US Eastern (New York)</option>
+              <option value="America/Chicago">US Central (Chicago)</option>
+              <option value="America/Denver">US Mountain (Denver)</option>
+              <option value="America/Los_Angeles">US Pacific (Los Angeles)</option>
+              <option value="Europe/London">UK (London)</option>
+              <option value="Europe/Berlin">Europe Central (Berlin)</option>
+              <option value="Asia/Dubai">Gulf (Dubai)</option>
+              <option value="Asia/Colombo">Sri Lanka (Colombo)</option>
+              <option value="Asia/Tokyo">Japan (Tokyo)</option>
+              <option value="Australia/Sydney">Australia (Sydney)</option>
+            </select>
+          </div>
+          <div class="clock-display">
+            <time id="timeValue" datetime="00:00:00">--:--:--</time>
+            <time id="dateValue" datetime="2000-01-01">--/--/----</time>
+          </div>
+        </section>
+
+        <section class="clock-block" id="secondaryClock" aria-label="Secondary clock" hidden>
+          <div class="clock-header">
+            <span class="clock-label" id="secondaryClockLabel">Secondary</span>
+            <label class="tz-label" for="secondaryTzSelect">Time zone</label>
+            <select id="secondaryTzSelect">
+              <option value="system">System default</option>
+              <option value="UTC" selected>UTC</option>
+              <option value="America/New_York">US Eastern (New York)</option>
+              <option value="America/Chicago">US Central (Chicago)</option>
+              <option value="America/Denver">US Mountain (Denver)</option>
+              <option value="America/Los_Angeles">US Pacific (Los Angeles)</option>
+              <option value="Europe/London">UK (London)</option>
+              <option value="Europe/Berlin">Europe Central (Berlin)</option>
+              <option value="Asia/Dubai">Gulf (Dubai)</option>
+              <option value="Asia/Colombo">Sri Lanka (Colombo)</option>
+              <option value="Asia/Tokyo">Japan (Tokyo)</option>
+              <option value="Australia/Sydney">Australia (Sydney)</option>
+            </select>
+          </div>
+          <div class="clock-display">
+            <time id="secondaryTimeValue" datetime="00:00:00">--:--:--</time>
+            <time id="secondaryDateValue" datetime="2000-01-01">--/--/----</time>
+          </div>
+        </section>
       </div>
+
+      <div class="settings">
+        <label class="toggle-label" for="dualClockToggle">
+          <input type="checkbox" id="dualClockToggle" />
+          <span>Second clock</span>
+        </label>
+      </div>
+
       <div id="status" role="status" aria-live="polite" aria-atomic="true"></div>
     </main>
     <script src="popup.js"></script>
