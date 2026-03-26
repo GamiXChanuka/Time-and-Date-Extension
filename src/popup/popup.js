@@ -62,62 +62,143 @@ function toLocalISODate(date) {
   return year + '-' + month + '-' + day;
 }
 
-/* --- Popup initialisation (browser only) --- */
+/* --- Popup lifecycle (browser only) --- */
 
 if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', function () {
-    var timeEl = document.getElementById('timeValue');
-    var dateEl = document.getElementById('dateValue');
-    var refreshBtn = document.getElementById('refreshBtn');
-    var statusEl = document.getElementById('status');
+  var _intervalId = null;
+  var _timeEl = null;
+  var _dateEl = null;
+  var _refreshBtn = null;
+  var _statusEl = null;
+  var _warnedMissing = false;
+  var _renderErrorLogged = false;
 
-    var intervalId = null;
-
-    if (!timeEl || !dateEl || !refreshBtn) {
-      console.error('Popup: Required DOM elements not found');
-      return;
-    }
-
-    function render(now) {
+  /**
+   * Update the time and date display elements.
+   * Accepts an optional Date (defaults to now) for deterministic testing.
+   * Catches and logs unexpected errors once to avoid console spam.
+   */
+  var safeRender = function safeRender(now) {
+    try {
       if (!now) {
         now = new Date();
       }
 
-      timeEl.textContent = formatTime(now);
-      dateEl.textContent = formatDate(now);
-      timeEl.setAttribute('datetime', timeDateTimeAttr(now));
-      dateEl.setAttribute('datetime', toLocalISODate(now));
-    }
-
-    function startTimer() {
-      if (intervalId) {
-        clearInterval(intervalId);
+      if (_timeEl) {
+        var timeText = formatTime(now);
+        var timeDt = timeDateTimeAttr(now);
+        if (_timeEl.textContent !== timeText) {
+          _timeEl.textContent = timeText;
+        }
+        if (_timeEl.getAttribute('datetime') !== timeDt) {
+          _timeEl.setAttribute('datetime', timeDt);
+        }
       }
-      intervalId = setInterval(function () {
-        render();
-      }, 1000);
+      if (_dateEl) {
+        var dateText = formatDate(now);
+        var dateDt = toLocalISODate(now);
+        if (_dateEl.textContent !== dateText) {
+          _dateEl.textContent = dateText;
+        }
+        if (_dateEl.getAttribute('datetime') !== dateDt) {
+          _dateEl.setAttribute('datetime', dateDt);
+        }
+      }
+    } catch (err) {
+      if (!_renderErrorLogged) {
+        console.error('Popup: render error', err);
+        _renderErrorLogged = true;
+      }
+    }
+  };
+
+  /**
+   * Start the 1-second auto-update ticker.
+   * No-op if a ticker is already running (single-interval guard).
+   */
+  var startTicker = function startTicker() {
+    if (_intervalId) {
+      return;
+    }
+    _intervalId = setInterval(function () {
+      safeRender();
+    }, 1000);
+  };
+
+  /**
+   * Stop the auto-update ticker.
+   * Idempotent — safe to call multiple times.
+   */
+  var stopTicker = function stopTicker() {
+    if (_intervalId) {
+      clearInterval(_intervalId);
+    }
+    _intervalId = null;
+  };
+
+  /**
+   * Initialise the popup: query DOM elements, perform first render,
+   * start the ticker, and wire up event listeners.
+   */
+  var initPopup = function initPopup() {
+    _timeEl = document.getElementById('timeValue');
+    _dateEl = document.getElementById('dateValue');
+    _refreshBtn = document.getElementById('refreshBtn');
+    _statusEl = document.getElementById('status');
+
+    if (!_warnedMissing && (!_timeEl || !_dateEl || !_refreshBtn)) {
+      var missing = [];
+      if (!_timeEl) {
+        missing.push('#timeValue');
+      }
+      if (!_dateEl) {
+        missing.push('#dateValue');
+      }
+      if (!_refreshBtn) {
+        missing.push('#refreshBtn');
+      }
+      console.warn('Popup: missing DOM elements: ' + missing.join(', '));
+      _warnedMissing = true;
     }
 
-    render();
-    startTimer();
+    safeRender();
+    startTicker();
 
-    window.addEventListener('beforeunload', function () {
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
+    window.addEventListener('pagehide', function () {
+      stopTicker();
+    });
+
+    document.addEventListener('visibilitychange', function () {
+      try {
+        if (document.visibilityState === 'hidden') {
+          stopTicker();
+        } else {
+          safeRender();
+          startTicker();
+        }
+      } catch (err) {
+        console.error('Popup: visibilitychange error', err);
       }
     });
 
-    refreshBtn.addEventListener('click', function () {
-      render();
-      if (statusEl) {
-        statusEl.textContent = 'Time and date updated';
-        setTimeout(function () {
-          statusEl.textContent = '';
-        }, 1000);
-      }
-    });
-  });
+    if (_refreshBtn) {
+      _refreshBtn.addEventListener('click', function () {
+        try {
+          safeRender();
+          if (_statusEl) {
+            _statusEl.textContent = 'Time and date updated';
+            setTimeout(function () {
+              _statusEl.textContent = '';
+            }, 1000);
+          }
+        } catch (err) {
+          console.error('Popup: refresh error', err);
+        }
+      });
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', initPopup);
 }
 
 /* --- Testability: export helpers for Node-based test runners --- */
