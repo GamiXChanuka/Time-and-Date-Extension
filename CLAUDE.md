@@ -38,6 +38,17 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `npm run validate:manifest` — manifest v3 schema validation
 - `npm run check` — run lint + format:check + validate:manifest
 
+## Formatting Helpers (popup.js)
+
+Top-level functions exported for testing via conditional `module.exports`:
+
+- `formatTime(date, locale)` — locale-aware time via cached `Intl.DateTimeFormat`
+- `formatDate(date, locale)` — locale-aware date via cached `Intl.DateTimeFormat`
+- `timeDateTimeAttr(date)` — ISO 8601 UTC timestamp (`date.toISOString()`)
+- `toLocalISODate(date)` — local-calendar `YYYY-MM-DD` from local date components
+
+Formatter instances are cached in `_formatterCache` keyed by locale and type. All helpers fall back to `toLocaleString` methods if `Intl` is unavailable.
+
 ## Code Guidelines
 
 - No inline scripts, styles, or event handlers (CSP compliance)
