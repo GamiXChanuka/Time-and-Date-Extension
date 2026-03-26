@@ -268,11 +268,31 @@ describe('validateManifestObject', function () {
     ).toBe(true);
   });
 
-  it('fails if host_permissions is non-empty', function () {
+  it('allows the RapidAPI weather host permission', function () {
+    var violations = validateManifestObject(
+      goodManifest({ host_permissions: ['https://weather-api167.p.rapidapi.com/*'] })
+    );
+    expect(violations).toHaveLength(0);
+  });
+
+  it('fails if a disallowed host permission is present', function () {
     var violations = validateManifestObject(goodManifest({ host_permissions: ['https://*/*'] }));
     expect(
       violations.some(function (v) {
-        return v.message.match(/host_permissions/);
+        return v.message.match(/disallowed host_permissions/);
+      })
+    ).toBe(true);
+  });
+
+  it('fails if disallowed host permission is mixed with allowed ones', function () {
+    var violations = validateManifestObject(
+      goodManifest({
+        host_permissions: ['https://weather-api167.p.rapidapi.com/*', 'https://example.com/*'],
+      })
+    );
+    expect(
+      violations.some(function (v) {
+        return v.message.match(/disallowed host_permissions/);
       })
     ).toBe(true);
   });
