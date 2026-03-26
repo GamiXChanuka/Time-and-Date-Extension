@@ -71,16 +71,23 @@ main {
 
 #timeValue {
   display: block;
-  font-size: 32px;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-size: var(--font-size-time);
+  font-weight: var(--font-weight-time);
+  line-height: var(--line-height-time);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #dateValue {
   display: block;
-  font-size: 16px;
-  color: #666666;
+  font-size: var(--font-size-date);
+  font-weight: var(--font-weight-date);
+  line-height: var(--line-height-date);
+  color: var(--color-muted);
+  max-width: 100%;
 }
 
 #refreshBtn {
