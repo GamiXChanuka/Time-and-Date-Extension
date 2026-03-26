@@ -71,23 +71,44 @@ if (typeof document !== 'undefined') {
   var _refreshBtn = null;
   var _statusEl = null;
   var _warnedMissing = false;
+  var _renderErrorLogged = false;
 
   /**
    * Update the time and date display elements.
    * Accepts an optional Date (defaults to now) for deterministic testing.
+   * Catches and logs unexpected errors once to avoid console spam.
    */
   var safeRender = function safeRender(now) {
-    if (!now) {
-      now = new Date();
-    }
+    try {
+      if (!now) {
+        now = new Date();
+      }
 
-    if (_timeEl) {
-      _timeEl.textContent = formatTime(now);
-      _timeEl.setAttribute('datetime', timeDateTimeAttr(now));
-    }
-    if (_dateEl) {
-      _dateEl.textContent = formatDate(now);
-      _dateEl.setAttribute('datetime', toLocalISODate(now));
+      if (_timeEl) {
+        var timeText = formatTime(now);
+        var timeDt = timeDateTimeAttr(now);
+        if (_timeEl.textContent !== timeText) {
+          _timeEl.textContent = timeText;
+        }
+        if (_timeEl.getAttribute('datetime') !== timeDt) {
+          _timeEl.setAttribute('datetime', timeDt);
+        }
+      }
+      if (_dateEl) {
+        var dateText = formatDate(now);
+        var dateDt = toLocalISODate(now);
+        if (_dateEl.textContent !== dateText) {
+          _dateEl.textContent = dateText;
+        }
+        if (_dateEl.getAttribute('datetime') !== dateDt) {
+          _dateEl.setAttribute('datetime', dateDt);
+        }
+      }
+    } catch (err) {
+      if (!_renderErrorLogged) {
+        console.error('Popup: render error', err);
+        _renderErrorLogged = true;
+      }
     }
   };
 
@@ -148,22 +169,30 @@ if (typeof document !== 'undefined') {
     });
 
     document.addEventListener('visibilitychange', function () {
-      if (document.visibilityState === 'hidden') {
-        stopTicker();
-      } else {
-        safeRender();
-        startTicker();
+      try {
+        if (document.visibilityState === 'hidden') {
+          stopTicker();
+        } else {
+          safeRender();
+          startTicker();
+        }
+      } catch (err) {
+        console.error('Popup: visibilitychange error', err);
       }
     });
 
     if (_refreshBtn) {
       _refreshBtn.addEventListener('click', function () {
-        safeRender();
-        if (_statusEl) {
-          _statusEl.textContent = 'Time and date updated';
-          setTimeout(function () {
-            _statusEl.textContent = '';
-          }, 1000);
+        try {
+          safeRender();
+          if (_statusEl) {
+            _statusEl.textContent = 'Time and date updated';
+            setTimeout(function () {
+              _statusEl.textContent = '';
+            }, 1000);
+          }
+        } catch (err) {
+          console.error('Popup: refresh error', err);
         }
       });
     }
