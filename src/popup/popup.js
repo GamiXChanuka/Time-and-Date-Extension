@@ -113,8 +113,34 @@ var _dateOptions = {
   day: 'numeric',
 };
 
+/**
+ * Build Intl.DateTimeFormat options with an optional timeZone.
+ * When timeZone is undefined the browser's system zone is used.
+ */
+function _buildOptions(base, timeZone) {
+  if (!timeZone) {
+    return base;
+  }
+  var opts = {};
+  for (var k in base) {
+    if (Object.prototype.hasOwnProperty.call(base, k)) {
+      opts[k] = base[k];
+    }
+  }
+  opts.timeZone = timeZone;
+  return opts;
+}
+
+/**
+ * Resolve the "system" sentinel to undefined (omit timeZone from Intl options)
+ * and pass through valid IANA identifiers as-is.
+ */
+function _resolveTimeZone(tz) {
+  return tz && tz !== 'system' ? tz : undefined;
+}
+
 function _getFormatter(locale, options, cacheKey) {
-  var key = (locale || '') + '::' + cacheKey;
+  var key = (locale || '') + '::' + (options.timeZone || '') + '::' + cacheKey;
   if (!_formatterCache[key]) {
     _formatterCache[key] = new Intl.DateTimeFormat(locale, options);
   }
@@ -123,11 +149,14 @@ function _getFormatter(locale, options, cacheKey) {
 
 /**
  * Format a Date as a locale-aware time string.
+ * Optional timeZone param: IANA identifier, "system", or omitted for system default.
  * Falls back to toLocaleTimeString() if Intl is unavailable.
  */
-function formatTime(date, locale) {
+function formatTime(date, locale, timeZone) {
   try {
-    return _getFormatter(locale, _timeOptions, 'time').format(date);
+    var tz = _resolveTimeZone(timeZone);
+    var opts = _buildOptions(_timeOptions, tz);
+    return _getFormatter(locale, opts, 'time').format(date);
   } catch (e) {
     return date.toLocaleTimeString();
   }
@@ -135,11 +164,14 @@ function formatTime(date, locale) {
 
 /**
  * Format a Date as a locale-aware date string.
+ * Optional timeZone param: IANA identifier, "system", or omitted for system default.
  * Falls back to toLocaleDateString() if Intl is unavailable.
  */
-function formatDate(date, locale) {
+function formatDate(date, locale, timeZone) {
   try {
-    return _getFormatter(locale, _dateOptions, 'date').format(date);
+    var tz = _resolveTimeZone(timeZone);
+    var opts = _buildOptions(_dateOptions, tz);
+    return _getFormatter(locale, opts, 'date').format(date);
   } catch (e) {
     return date.toLocaleDateString();
   }
@@ -154,15 +186,45 @@ function timeDateTimeAttr(date) {
 }
 
 /**
- * Return a local-calendar ISO date string (YYYY-MM-DD).
- * Derived from local date components, not UTC, to avoid
- * date shifts near midnight in non-UTC timezones.
+ * Return a calendar ISO date string (YYYY-MM-DD) for a given timezone.
+ * When timeZone is omitted or "system", uses local date components.
+ * When an IANA timeZone is provided, uses Intl.DateTimeFormat to
+ * extract the date as seen in that timezone.
  */
-function toLocalISODate(date) {
-  var year = date.getFullYear();
-  var month = String(date.getMonth() + 1).padStart(2, '0');
-  var day = String(date.getDate()).padStart(2, '0');
-  return year + '-' + month + '-' + day;
+function toLocalISODate(date, timeZone) {
+  var tz = _resolveTimeZone(timeZone);
+  if (!tz) {
+    var year = date.getFullYear();
+    var month = String(date.getMonth() + 1).padStart(2, '0');
+    var day = String(date.getDate()).padStart(2, '0');
+    return year + '-' + month + '-' + day;
+  }
+  try {
+    var parts = new Intl.DateTimeFormat('en', {
+      timeZone: tz,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).formatToParts(date);
+    var y = '';
+    var m = '';
+    var d = '';
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].type === 'year') {
+        y = parts[i].value;
+      }
+      if (parts[i].type === 'month') {
+        m = parts[i].value;
+      }
+      if (parts[i].type === 'day') {
+        d = parts[i].value;
+      }
+    }
+    return y + '-' + m + '-' + d;
+  } catch (e) {
+    /* Fallback to system-local if Intl.formatToParts is unavailable */
+    return toLocalISODate(date);
+  }
 }
 
 /* --- Popup lifecycle (browser only) --- */
@@ -171,18 +233,49 @@ if (typeof document !== 'undefined') {
   var _intervalId = null;
   var _timeEl = null;
   var _dateEl = null;
+  var _secondaryTimeEl = null;
+  var _secondaryDateEl = null;
+  var _secondaryClockEl = null;
   var _refreshBtn = null;
   var _statusEl = null;
   var _statusClearTimer = null;
   var _warnedMissing = false;
   var _renderErrorLogged = false;
+  var _settings = sanitizeSettings({});
 
   /**
-   * Update the time and date display elements.
+   * Update a single clock's time and date <time> elements.
+   * timeZone is an IANA identifier or "system" (resolved internally).
+   */
+  var _renderClock = function _renderClock(timeEl, dateEl, now, timeZone) {
+    if (timeEl) {
+      var timeText = formatTime(now, undefined, timeZone);
+      var timeDt = timeDateTimeAttr(now);
+      if (timeEl.textContent !== timeText) {
+        timeEl.textContent = timeText;
+      }
+      if (timeEl.getAttribute('datetime') !== timeDt) {
+        timeEl.setAttribute('datetime', timeDt);
+      }
+    }
+    if (dateEl) {
+      var dateText = formatDate(now, undefined, timeZone);
+      var dateDt = toLocalISODate(now, timeZone);
+      if (dateEl.textContent !== dateText) {
+        dateEl.textContent = dateText;
+      }
+      if (dateEl.getAttribute('datetime') !== dateDt) {
+        dateEl.setAttribute('datetime', dateDt);
+      }
+    }
+  };
+
+  /**
+   * Update all visible clock displays in a single render pass.
    * Accepts an optional Date (defaults to now) for deterministic testing.
    * Catches and logs unexpected errors once to avoid console spam.
    *
-   * Accessibility: #timeValue and #dateValue are non-live regions — they have
+   * Accessibility: clock <time> elements are non-live regions — they have
    * no aria-live attribute so screen readers are not spammed every second.
    * The #status live region is intentionally NOT updated here; it is only
    * written to on explicit user-triggered refresh (see initPopup click handler).
@@ -193,25 +286,12 @@ if (typeof document !== 'undefined') {
         now = new Date();
       }
 
-      if (_timeEl) {
-        var timeText = formatTime(now);
-        var timeDt = timeDateTimeAttr(now);
-        if (_timeEl.textContent !== timeText) {
-          _timeEl.textContent = timeText;
-        }
-        if (_timeEl.getAttribute('datetime') !== timeDt) {
-          _timeEl.setAttribute('datetime', timeDt);
-        }
-      }
-      if (_dateEl) {
-        var dateText = formatDate(now);
-        var dateDt = toLocalISODate(now);
-        if (_dateEl.textContent !== dateText) {
-          _dateEl.textContent = dateText;
-        }
-        if (_dateEl.getAttribute('datetime') !== dateDt) {
-          _dateEl.setAttribute('datetime', dateDt);
-        }
+      /* Primary clock — always rendered */
+      _renderClock(_timeEl, _dateEl, now, _settings.primaryTimeZone);
+
+      /* Secondary clock — only rendered when enabled and visible */
+      if (_settings.dualClockEnabled && _secondaryTimeEl) {
+        _renderClock(_secondaryTimeEl, _secondaryDateEl, now, _settings.secondaryTimeZone);
       }
     } catch (err) {
       if (!_renderErrorLogged) {
@@ -252,6 +332,9 @@ if (typeof document !== 'undefined') {
   var initPopup = function initPopup() {
     _timeEl = document.getElementById('timeValue');
     _dateEl = document.getElementById('dateValue');
+    _secondaryTimeEl = document.getElementById('secondaryTimeValue');
+    _secondaryDateEl = document.getElementById('secondaryDateValue');
+    _secondaryClockEl = document.getElementById('secondaryClock');
     _refreshBtn = document.getElementById('refreshBtn');
     _statusEl = document.getElementById('status');
 
