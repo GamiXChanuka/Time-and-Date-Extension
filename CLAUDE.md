@@ -22,6 +22,8 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `scripts/validate-manifest.js` — MV3 manifest validator
 - `tests/popup.helpers.test.js` — unit tests for formatting helpers
 - `tests/popup.dom.test.js` — DOM-level tests for popup rendering
+- `tests/check-readiness.test.js` — fixture-based tests for readiness checker
+- `tests/fixtures/readiness/` — known-good and known-bad fixture files
 - `assets/icons/` — extension icons (16/32/48/128px)
 
 ## Stable DOM IDs (do not rename)
