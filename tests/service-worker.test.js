@@ -130,6 +130,12 @@ function readStoredAlarms() {
   return raw && raw.alarms ? raw.alarms : [];
 }
 
+/** Reads snoozes from mock storage. */
+function readStoredSnoozes() {
+  var raw = mockStorageData[alarmStorage.SNOOZE_STORAGE_KEY];
+  return raw && raw.snoozes ? raw.snoozes : [];
+}
+
 /* ------------------------------------------------------------------ */
 /*  Constants                                                          */
 /* ------------------------------------------------------------------ */
@@ -571,6 +577,350 @@ describe('onNotificationButtonClicked', function () {
   it('ignores notifications not matching alarm prefix', function () {
     // Should not throw
     sw.onNotificationButtonClicked('some-other-notification', 0);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  Notification format and options                                     */
+/* ------------------------------------------------------------------ */
+
+describe('fireNotification', function () {
+  beforeEach(resetMocks);
+
+  it('shows notification with alarm label as title', function () {
+    sw.fireNotification({ id: 'fmt1', hour: 9, minute: 5, label: 'Stand-up' });
+    expect(mockNotifications['alarm-fmt1'].title).toBe('Stand-up');
+  });
+
+  it('falls back to "Alarm" when label is empty', function () {
+    sw.fireNotification({ id: 'fmt2', hour: 14, minute: 0, label: '' });
+    expect(mockNotifications['alarm-fmt2'].title).toBe('Alarm');
+  });
+
+  it('includes zero-padded time in the message', function () {
+    sw.fireNotification({ id: 'fmt3', hour: 7, minute: 5, label: '' });
+    expect(mockNotifications['alarm-fmt3'].message).toBe('Alarm at 07:05');
+  });
+
+  it('includes Snooze and Dismiss action buttons', function () {
+    sw.fireNotification({ id: 'fmt4', hour: 8, minute: 0, label: '' });
+    var opts = mockNotifications['alarm-fmt4'];
+    expect(opts.buttons).toHaveLength(2);
+    expect(opts.buttons[0].title).toMatch(/Snooze/);
+    expect(opts.buttons[0].title).toMatch(/5/);
+    expect(opts.buttons[1].title).toBe('Dismiss');
+  });
+
+  it('uses type basic with requireInteraction and priority 2', function () {
+    sw.fireNotification({ id: 'fmt5', hour: 8, minute: 0, label: '' });
+    var opts = mockNotifications['alarm-fmt5'];
+    expect(opts.type).toBe('basic');
+    expect(opts.requireInteraction).toBe(true);
+    expect(opts.priority).toBe(2);
+  });
+
+  it('includes the extension icon', function () {
+    sw.fireNotification({ id: 'fmt6', hour: 8, minute: 0, label: '' });
+    expect(mockNotifications['alarm-fmt6'].iconUrl).toMatch(/icon128\.png$/);
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  Snooze does not break repeating schedule                           */
+/* ------------------------------------------------------------------ */
+
+describe('snooze does not break repeating schedule', function () {
+  beforeEach(resetMocks);
+
+  it('repeating alarm stays scheduled after snooze fires', function () {
+    var now = new Date();
+    var nextFireAt = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate() + 1,
+      8,
+      0,
+      0,
+      0
+    ).toISOString();
+
+    seedAlarms([
+      {
+        id: 'rep-snz',
+        hour: 8,
+        minute: 0,
+        label: 'Daily standup',
+        enabled: true,
+        repeatDays: [0, 1, 2, 3, 4, 5, 6],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+        nextFireAt: nextFireAt,
+      },
+    ]);
+
+    // Step 1: Regular alarm fires — schedule advances
+    return sw
+      .onAlarmFired({ name: 'alarm-rep-snz' })
+      .then(function () {
+        var stored = readStoredAlarms();
+        // Alarm remains enabled with a future nextFireAt
+        expect(stored[0].enabled).toBe(true);
+        expect(stored[0].nextFireAt).not.toBeNull();
+        var nextMs = new Date(stored[0].nextFireAt).getTime();
+        expect(nextMs).toBeGreaterThan(now.getTime());
+
+        // Step 2: User clicks Snooze
+        sw.onNotificationButtonClicked('alarm-rep-snz', 0);
+
+        return new Promise(function (resolve) {
+          setTimeout(resolve, 50);
+        });
+      })
+      .then(function () {
+        // Snooze alarm should exist
+        expect(mockAlarmStore['snooze-rep-snz']).toBeDefined();
+        expect(mockAlarmStore['snooze-rep-snz'].delayInMinutes).toBe(5);
+
+        // Snooze record persisted
+        var snoozes = readStoredSnoozes();
+        expect(snoozes.length).toBe(1);
+        expect(snoozes[0].alarmId).toBe('rep-snz');
+
+        // Original alarm still enabled and has nextFireAt
+        var stored = readStoredAlarms();
+        expect(stored[0].enabled).toBe(true);
+        expect(stored[0].nextFireAt).not.toBeNull();
+
+        // Step 3: Snooze fires
+        return sw.onAlarmFired({ name: 'snooze-rep-snz' });
+      })
+      .then(function () {
+        // Notification shown again
+        expect(mockNotifications['alarm-rep-snz']).toBeDefined();
+
+        // Snooze record cleaned up
+        var snoozes = readStoredSnoozes();
+        expect(snoozes.length).toBe(0);
+
+        // Original alarm STILL enabled with future nextFireAt (schedule not broken)
+        var stored = readStoredAlarms();
+        expect(stored[0].enabled).toBe(true);
+        expect(stored[0].nextFireAt).not.toBeNull();
+      });
+  });
+
+  it('one-time alarm stays disabled after snooze fires', function () {
+    seedAlarms([
+      {
+        id: 'ot-snz',
+        hour: 15,
+        minute: 30,
+        label: 'Reminder',
+        enabled: true,
+        repeatDays: [],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+        nextFireAt: new Date().toISOString(),
+      },
+    ]);
+
+    // Step 1: One-time alarm fires — marked disabled
+    return sw
+      .onAlarmFired({ name: 'alarm-ot-snz' })
+      .then(function () {
+        var stored = readStoredAlarms();
+        expect(stored[0].enabled).toBe(false);
+        expect(stored[0].nextFireAt).toBeNull();
+
+        // Step 2: User snoozes
+        sw.onNotificationButtonClicked('alarm-ot-snz', 0);
+        return new Promise(function (resolve) {
+          setTimeout(resolve, 50);
+        });
+      })
+      .then(function () {
+        expect(mockAlarmStore['snooze-ot-snz']).toBeDefined();
+
+        // Step 3: Snooze fires
+        return sw.onAlarmFired({ name: 'snooze-ot-snz' });
+      })
+      .then(function () {
+        // Notification shown
+        expect(mockNotifications['alarm-ot-snz']).toBeDefined();
+
+        // Alarm is still disabled (one-time completed)
+        var stored = readStoredAlarms();
+        expect(stored[0].enabled).toBe(false);
+      });
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  Dismiss behavior                                                   */
+/* ------------------------------------------------------------------ */
+
+describe('dismiss behavior', function () {
+  beforeEach(resetMocks);
+
+  it('dismiss clears pending snooze alarm and record', function () {
+    seedSnoozes([
+      {
+        alarmId: 'dism1',
+        snoozeUntil: new Date(Date.now() + 300000).toISOString(),
+        notificationId: 'alarm-dism1',
+      },
+    ]);
+    mockAlarmStore['snooze-dism1'] = { delayInMinutes: 5 };
+
+    sw.handleDismiss('dism1');
+
+    return new Promise(function (resolve) {
+      setTimeout(resolve, 50);
+    }).then(function () {
+      // Snooze chrome.alarm cleared
+      expect(mockAlarmStore['snooze-dism1']).toBeUndefined();
+
+      // Snooze record removed from storage
+      var snoozes = readStoredSnoozes();
+      expect(snoozes.length).toBe(0);
+    });
+  });
+
+  it('dismiss is safe when no snooze exists', function () {
+    // Should not throw
+    sw.handleDismiss('no-snooze');
+
+    return new Promise(function (resolve) {
+      setTimeout(resolve, 50);
+    }).then(function () {
+      var snoozes = readStoredSnoozes();
+      expect(snoozes.length).toBe(0);
+    });
+  });
+
+  it('handleSnooze persists snooze record with correct fields', function () {
+    sw.handleSnooze('snz-rec');
+
+    return new Promise(function (resolve) {
+      setTimeout(resolve, 50);
+    }).then(function () {
+      var snoozes = readStoredSnoozes();
+      expect(snoozes.length).toBe(1);
+      expect(snoozes[0].alarmId).toBe('snz-rec');
+      expect(snoozes[0].snoozeUntil).toBeTruthy();
+      expect(snoozes[0].notificationId).toBe('alarm-snz-rec');
+
+      // Verify the snoozeUntil is ~5 minutes from now
+      var snoozeMs = new Date(snoozes[0].snoozeUntil).getTime();
+      var diff = snoozeMs - Date.now();
+      expect(diff).toBeGreaterThan(4 * 60 * 1000);
+      expect(diff).toBeLessThanOrEqual(5 * 60 * 1000 + 1000);
+    });
+  });
+
+  it('handleSnooze replaces existing snooze for same alarm', function () {
+    seedSnoozes([
+      {
+        alarmId: 'dup-snz',
+        snoozeUntil: '2026-01-01T00:00:00Z',
+        notificationId: 'alarm-dup-snz',
+      },
+    ]);
+
+    sw.handleSnooze('dup-snz');
+
+    return new Promise(function (resolve) {
+      setTimeout(resolve, 50);
+    }).then(function () {
+      var snoozes = readStoredSnoozes();
+      // Should have exactly one (replaced, not appended)
+      expect(snoozes.length).toBe(1);
+      expect(snoozes[0].alarmId).toBe('dup-snz');
+      // snoozeUntil should be fresh (not the old 2026-01-01)
+      expect(snoozes[0].snoozeUntil).not.toBe('2026-01-01T00:00:00Z');
+    });
+  });
+});
+
+/* ------------------------------------------------------------------ */
+/*  Storage updates keep New Tab UI accurate                           */
+/* ------------------------------------------------------------------ */
+
+describe('storage updates for New Tab UI accuracy', function () {
+  beforeEach(resetMocks);
+
+  it('one-time alarm has updatedAt set after being marked completed', function () {
+    var beforeFire = new Date().toISOString();
+    seedAlarms([
+      {
+        id: 'ts1',
+        hour: 8,
+        minute: 0,
+        label: '',
+        enabled: true,
+        repeatDays: [],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+        nextFireAt: new Date().toISOString(),
+      },
+    ]);
+
+    return sw.onAlarmFired({ name: 'alarm-ts1' }).then(function () {
+      var stored = readStoredAlarms();
+      // updatedAt should be newer than the original
+      expect(stored[0].updatedAt).not.toBe('2026-01-01T00:00:00Z');
+      expect(stored[0].updatedAt >= beforeFire).toBe(true);
+    });
+  });
+
+  it('repeating alarm nextFireAt is updated in storage after firing', function () {
+    var now = new Date();
+    var oldNextFire = now.toISOString();
+
+    seedAlarms([
+      {
+        id: 'nf1',
+        hour: now.getHours(),
+        minute: now.getMinutes(),
+        label: '',
+        enabled: true,
+        repeatDays: [0, 1, 2, 3, 4, 5, 6],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+        nextFireAt: oldNextFire,
+      },
+    ]);
+
+    return sw.onAlarmFired({ name: 'alarm-nf1' }).then(function () {
+      var stored = readStoredAlarms();
+      // nextFireAt should have advanced beyond the old value
+      expect(stored[0].nextFireAt).not.toBe(oldNextFire);
+      var newMs = new Date(stored[0].nextFireAt).getTime();
+      expect(newMs).toBeGreaterThan(now.getTime());
+    });
+  });
+
+  it('repeating alarm re-schedules chrome.alarms entry after firing', function () {
+    var now = new Date();
+    seedAlarms([
+      {
+        id: 'sched1',
+        hour: now.getHours(),
+        minute: now.getMinutes(),
+        label: '',
+        enabled: true,
+        repeatDays: [0, 1, 2, 3, 4, 5, 6],
+        createdAt: '2026-01-01T00:00:00Z',
+        updatedAt: '2026-01-01T00:00:00Z',
+        nextFireAt: now.toISOString(),
+      },
+    ]);
+
+    return sw.onAlarmFired({ name: 'alarm-sched1' }).then(function () {
+      // A new chrome.alarms entry should be created for the next occurrence
+      expect(mockAlarmStore['alarm-sched1']).toBeDefined();
+      expect(mockAlarmStore['alarm-sched1'].when).toBeGreaterThan(now.getTime());
+    });
   });
 });
 
