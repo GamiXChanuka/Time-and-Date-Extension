@@ -141,6 +141,76 @@ main {
   max-width: 100%;
 }
 
+/* --- Weather panel --- */
+
+.weather-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.weather-content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.weather-content[hidden] {
+  display: none;
+}
+
+.weather-icon {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
+}
+
+.weather-details {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+}
+
+.weather-city {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-btn);
+  color: var(--color-text);
+}
+
+.weather-condition {
+  font-size: var(--font-size-small);
+  color: var(--color-muted);
+}
+
+.weather-temp {
+  font-size: var(--font-size-btn);
+  font-weight: var(--font-weight-time);
+  color: var(--color-text);
+}
+
+.weather-status {
+  font-size: var(--font-size-small);
+  color: var(--color-muted);
+  margin: 0;
+}
+
+.weather-status[hidden] {
+  display: none;
+}
+
+.weather-updated {
+  font-size: var(--font-size-small);
+  color: var(--color-muted);
+}
+
+.weather-updated:empty {
+  display: none;
+}
+
 /* --- Settings controls --- */
 
 .settings {
