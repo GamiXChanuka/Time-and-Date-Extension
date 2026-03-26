@@ -62,62 +62,93 @@ function toLocalISODate(date) {
   return year + '-' + month + '-' + day;
 }
 
-/* --- Popup initialisation (browser only) --- */
+/* --- Popup lifecycle (browser only) --- */
 
 if (typeof document !== 'undefined') {
-  document.addEventListener('DOMContentLoaded', function () {
-    var timeEl = document.getElementById('timeValue');
-    var dateEl = document.getElementById('dateValue');
-    var refreshBtn = document.getElementById('refreshBtn');
-    var statusEl = document.getElementById('status');
+  var _intervalId = null;
+  var _timeEl = null;
+  var _dateEl = null;
+  var _refreshBtn = null;
+  var _statusEl = null;
 
-    var intervalId = null;
+  /**
+   * Update the time and date display elements.
+   * Accepts an optional Date (defaults to now) for deterministic testing.
+   */
+  var safeRender = function safeRender(now) {
+    if (!now) {
+      now = new Date();
+    }
 
-    if (!timeEl || !dateEl || !refreshBtn) {
-      console.error('Popup: Required DOM elements not found');
+    if (_timeEl) {
+      _timeEl.textContent = formatTime(now);
+      _timeEl.setAttribute('datetime', timeDateTimeAttr(now));
+    }
+    if (_dateEl) {
+      _dateEl.textContent = formatDate(now);
+      _dateEl.setAttribute('datetime', toLocalISODate(now));
+    }
+  };
+
+  /**
+   * Start the 1-second auto-update ticker.
+   * No-op if a ticker is already running (single-interval guard).
+   */
+  var startTicker = function startTicker() {
+    if (_intervalId) {
       return;
     }
+    _intervalId = setInterval(function () {
+      safeRender();
+    }, 1000);
+  };
 
-    function render(now) {
-      if (!now) {
-        now = new Date();
-      }
+  /**
+   * Stop the auto-update ticker.
+   * Idempotent — safe to call multiple times.
+   */
+  var stopTicker = function stopTicker() {
+    if (_intervalId) {
+      clearInterval(_intervalId);
+    }
+    _intervalId = null;
+  };
 
-      timeEl.textContent = formatTime(now);
-      dateEl.textContent = formatDate(now);
-      timeEl.setAttribute('datetime', timeDateTimeAttr(now));
-      dateEl.setAttribute('datetime', toLocalISODate(now));
+  /**
+   * Initialise the popup: query DOM elements, perform first render,
+   * start the ticker, and wire up event listeners.
+   */
+  var initPopup = function initPopup() {
+    _timeEl = document.getElementById('timeValue');
+    _dateEl = document.getElementById('dateValue');
+    _refreshBtn = document.getElementById('refreshBtn');
+    _statusEl = document.getElementById('status');
+
+    if (!_timeEl || !_dateEl || !_refreshBtn) {
+      console.warn('Popup: Required DOM elements not found');
     }
 
-    function startTimer() {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-      intervalId = setInterval(function () {
-        render();
-      }, 1000);
-    }
-
-    render();
-    startTimer();
+    safeRender();
+    startTicker();
 
     window.addEventListener('beforeunload', function () {
-      if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
-      }
+      stopTicker();
     });
 
-    refreshBtn.addEventListener('click', function () {
-      render();
-      if (statusEl) {
-        statusEl.textContent = 'Time and date updated';
-        setTimeout(function () {
-          statusEl.textContent = '';
-        }, 1000);
-      }
-    });
-  });
+    if (_refreshBtn) {
+      _refreshBtn.addEventListener('click', function () {
+        safeRender();
+        if (_statusEl) {
+          _statusEl.textContent = 'Time and date updated';
+          setTimeout(function () {
+            _statusEl.textContent = '';
+          }, 1000);
+        }
+      });
+    }
+  };
+
+  document.addEventListener('DOMContentLoaded', initPopup);
 }
 
 /* --- Testability: export helpers for Node-based test runners --- */
