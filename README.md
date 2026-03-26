@@ -80,15 +80,17 @@ This project uses ESLint, Prettier, and AJV for automated code quality checks th
 
 ### Available Scripts
 
-| Script                      | Purpose                                                          |
-| --------------------------- | ---------------------------------------------------------------- |
-| `npm run lint`              | Lint all JavaScript files with ESLint                            |
-| `npm run lint:fix`          | Auto-fix ESLint issues where possible                            |
-| `npm run format`            | Format all files with Prettier                                   |
-| `npm run format:check`      | Check formatting without modifying files (CI-friendly)           |
-| `npm run validate:manifest` | Validate `manifest.json` against Manifest V3 schema              |
-| `npm run check`             | Run lint + format:check + validate:manifest (aggregate CI check) |
-| `npm run check:csp`         | Check CSP compliance in popup.html                               |
+| Script                      | Purpose                                                     |
+| --------------------------- | ----------------------------------------------------------- |
+| `npm run lint`              | Lint all JavaScript files with ESLint                       |
+| `npm run lint:fix`          | Auto-fix ESLint issues where possible                       |
+| `npm run format`            | Format all files with Prettier                              |
+| `npm run format:check`      | Check formatting without modifying files (CI-friendly)      |
+| `npm run validate:manifest` | Validate `manifest.json` against Manifest V3 schema         |
+| `npm run version:check`     | Verify `package.json` and `manifest.json` versions match    |
+| `npm run version:sync`      | Copy `package.json` version into `manifest.json`            |
+| `npm run check`             | Run lint + format:check + validate:manifest + version:check |
+| `npm run check:csp`         | Check CSP compliance in popup.html                          |
 
 ### What Gets Enforced
 
@@ -104,7 +106,7 @@ All validation runs offline using locally stored schemas and configurations.
 # Install dependencies
 npm ci
 
-# Run all checks (lint, format check, manifest validation)
+# Run all checks (lint, format, manifest validation, version check)
 npm run check
 
 # Fix auto-fixable issues
@@ -126,6 +128,39 @@ Example GitHub Actions workflow step:
 ```yaml
 - run: npm ci
 - run: npm run check
+```
+
+## Version Management
+
+The extension version is maintained in two files: `package.json` (authoritative source of truth) and `manifest.json` (required by Chrome). These must always match.
+
+### Bumping the Version
+
+1. Update the `version` field in `package.json`
+2. Run `npm run version:sync` to copy the version into `manifest.json`
+3. Commit both files together
+
+```bash
+# Example: after editing package.json version to 1.1.0
+npm run version:sync
+git add package.json manifest.json
+git commit -m "chore: bump version to 1.1.0"
+```
+
+### When to Bump
+
+Bump the version before creating a release ZIP or uploading to the Chrome Web Store. Chrome requires each uploaded version to be higher than the previous one.
+
+### CI Enforcement
+
+CI runs `npm run version:check` as part of the quality gate workflow. If `package.json` and `manifest.json` versions differ, the workflow fails with a message showing both versions.
+
+To fix a version drift failure:
+
+```bash
+npm run version:sync
+git add manifest.json
+git commit -m "chore: sync manifest version"
 ```
 
 ## Project Structure

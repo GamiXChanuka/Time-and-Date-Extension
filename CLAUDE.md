@@ -20,9 +20,12 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `scripts/check-csp.js` — CSP compliance validator
 - `scripts/check-readiness.js` — MV3/CSP/offline readiness checker
 - `scripts/validate-manifest.js` — MV3 manifest validator
+- `scripts/check-version.js` — version match checker (package.json vs manifest.json)
+- `scripts/sync-version.js` — syncs manifest.json version from package.json
 - `tests/popup.helpers.test.js` — unit tests for formatting helpers
 - `tests/popup.dom.test.js` — DOM-level tests for popup rendering
 - `tests/check-readiness.test.js` — fixture-based tests for readiness checker
+- `tests/check-version.test.js` — unit tests for version check and sync scripts
 - `tests/fixtures/readiness/` — known-good and known-bad fixture files
 - `assets/icons/` — extension icons (16/32/48/128px)
 
@@ -42,7 +45,9 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `npm run check:csp` — CSP compliance check
 - `npm run check:readiness` — MV3/CSP/offline/manifest readiness checks
 - `npm run validate:manifest` — manifest v3 schema validation
-- `npm run check` — run lint + format:check + validate:manifest
+- `npm run version:check` — verify package.json and manifest.json versions match
+- `npm run version:sync` — copy package.json version into manifest.json
+- `npm run check` — run lint + format:check + validate:manifest + version:check
 - `npm test` — run Jest unit tests
 
 ## Formatting Helpers (popup.js)
