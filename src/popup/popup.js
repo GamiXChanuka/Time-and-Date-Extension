@@ -70,6 +70,7 @@ if (typeof document !== 'undefined') {
   var _dateEl = null;
   var _refreshBtn = null;
   var _statusEl = null;
+  var _statusClearTimer = null;
   var _warnedMissing = false;
   var _renderErrorLogged = false;
 
@@ -191,10 +192,25 @@ if (typeof document !== 'undefined') {
         try {
           safeRender();
           if (_statusEl) {
-            _statusEl.textContent = 'Time and date updated';
-            setTimeout(function () {
-              _statusEl.textContent = '';
-            }, 1000);
+            /* Cancel any pending clear so rapid clicks don't race */
+            if (_statusClearTimer) {
+              clearTimeout(_statusClearTimer);
+              _statusClearTimer = null;
+            }
+            /*
+             * Clear then re-set the status text so screen readers
+             * re-announce even when the message is the same string.
+             * The brief empty value forces a DOM change that triggers
+             * a new polite announcement on the next content write.
+             */
+            _statusEl.textContent = '';
+            _statusClearTimer = setTimeout(function () {
+              _statusEl.textContent = 'Time and date updated';
+              _statusClearTimer = setTimeout(function () {
+                _statusEl.textContent = '';
+                _statusClearTimer = null;
+              }, 1000);
+            }, 0);
           }
         } catch (err) {
           console.error('Popup: refresh error', err);
