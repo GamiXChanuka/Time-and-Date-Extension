@@ -155,15 +155,90 @@ function fetchWeather(lat, lon) {
     });
 }
 
+/* --- In-session caching and rate limiting --- */
+
+/** Automatic refresh interval: 10 minutes. */
+var AUTO_REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+
+/** Manual refresh debounce: 15 seconds. */
+var MANUAL_REFRESH_DEBOUNCE_MS = 15 * 1000;
+
+/**
+ * In-memory cache keyed by "lat,lon".
+ * Each entry: { data: WeatherDTO, fetchedAt: number }
+ * Lives only for the popup session — no persistence.
+ * @type {Object<string, {data: object, fetchedAt: number}>}
+ */
+var _weatherCache = {};
+
+/**
+ * Build a cache key from coordinates.
+ * @param {number} lat
+ * @param {number} lon
+ * @returns {string}
+ */
+function _cacheKey(lat, lon) {
+  return lat + ',' + lon;
+}
+
+/**
+ * Get weather for a location with caching and rate limiting.
+ *
+ * Automatic calls (forceRefresh=false) reuse cached data younger than
+ * 10 minutes. Manual refresh calls (forceRefresh=true) are debounced
+ * to at most once per 15 seconds per location.
+ *
+ * On fetch failure, returns stale cached data if available, or null.
+ *
+ * @param {number} lat - Latitude
+ * @param {number} lon - Longitude
+ * @param {boolean} [forceRefresh] - True for manual refresh (15s debounce)
+ * @returns {Promise<{data: object, fetchedAt: number}|null>}
+ */
+function getWeather(lat, lon, forceRefresh) {
+  var key = _cacheKey(lat, lon);
+  var cached = _weatherCache[key];
+  var now = Date.now();
+
+  if (cached) {
+    var age = now - cached.fetchedAt;
+    var threshold = forceRefresh ? MANUAL_REFRESH_DEBOUNCE_MS : AUTO_REFRESH_INTERVAL_MS;
+    if (age < threshold) {
+      return Promise.resolve(cached);
+    }
+  }
+
+  return fetchWeather(lat, lon).then(function (dto) {
+    if (dto) {
+      _weatherCache[key] = { data: dto, fetchedAt: Date.now() };
+      return _weatherCache[key];
+    }
+    // On failure, return stale cache if available
+    return cached || null;
+  });
+}
+
+/**
+ * Clear the in-memory weather cache.
+ * Exposed for testing.
+ */
+function clearWeatherCache() {
+  _weatherCache = {};
+}
+
 /* --- Exports --- */
 
 var _weatherExports = {
   WEATHER_API_URL: WEATHER_API_URL,
   WEATHER_API_HOST: WEATHER_API_HOST,
   WEATHER_LOCATIONS: WEATHER_LOCATIONS,
+  AUTO_REFRESH_INTERVAL_MS: AUTO_REFRESH_INTERVAL_MS,
+  MANUAL_REFRESH_DEBOUNCE_MS: MANUAL_REFRESH_DEBOUNCE_MS,
   getWeatherLocation: getWeatherLocation,
   parseWeatherResponse: parseWeatherResponse,
   fetchWeather: fetchWeather,
+  getWeather: getWeather,
+  clearWeatherCache: clearWeatherCache,
 };
 
 // Browser: expose on self for popup.js to consume
