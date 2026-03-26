@@ -51,6 +51,14 @@ module.exports = {
         es2021: true,
       },
     },
+    {
+      files: ['tests/**/*.js'],
+      env: {
+        node: true,
+        jest: true,
+        es2021: true,
+      },
+    },
   ],
 
   ignorePatterns: ['node_modules/', 'schemas/'],
