@@ -461,15 +461,25 @@ function validateManifestObject(manifest) {
     );
   }
 
-  // permissions must be absent or empty
+  // permissions must only contain allowed values
+  var ALLOWED_PERMISSIONS = ['storage'];
   if (manifest.permissions && manifest.permissions.length > 0) {
-    violations.push(
-      createViolation(
-        'manifest.json',
-        null,
-        'permissions must be empty (found: ' + JSON.stringify(manifest.permissions) + ')'
-      )
-    );
+    var disallowed = manifest.permissions.filter(function (p) {
+      return ALLOWED_PERMISSIONS.indexOf(p) === -1;
+    });
+    if (disallowed.length > 0) {
+      violations.push(
+        createViolation(
+          'manifest.json',
+          null,
+          'disallowed permissions found (allowed: ' +
+            JSON.stringify(ALLOWED_PERMISSIONS) +
+            ', found: ' +
+            JSON.stringify(disallowed) +
+            ')'
+        )
+      );
+    }
   }
 
   // host_permissions must be absent or empty

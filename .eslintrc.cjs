@@ -13,6 +13,10 @@ module.exports = {
     es2021: true,
   },
 
+  globals: {
+    chrome: 'readonly',
+  },
+
   extends: [
     'eslint:recommended',
     'prettier', // Disables ESLint rules that conflict with Prettier

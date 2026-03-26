@@ -1,3 +1,106 @@
+/* --- Curated time zone list --- */
+
+var TIMEZONE_OPTIONS = [
+  { value: 'system', label: 'System default' },
+  { value: 'UTC', label: 'UTC' },
+  { value: 'America/New_York', label: 'US Eastern (New York)' },
+  { value: 'America/Chicago', label: 'US Central (Chicago)' },
+  { value: 'America/Denver', label: 'US Mountain (Denver)' },
+  { value: 'America/Los_Angeles', label: 'US Pacific (Los Angeles)' },
+  { value: 'Europe/London', label: 'UK (London)' },
+  { value: 'Europe/Berlin', label: 'Europe Central (Berlin)' },
+  { value: 'Asia/Dubai', label: 'Gulf (Dubai)' },
+  { value: 'Asia/Colombo', label: 'Sri Lanka (Colombo)' },
+  { value: 'Asia/Tokyo', label: 'Japan (Tokyo)' },
+  { value: 'Australia/Sydney', label: 'Australia (Sydney)' },
+];
+
+/* --- Settings defaults and persistence --- */
+
+var SETTINGS_STORAGE_KEY = 'dualClockSettings';
+
+var DEFAULT_SETTINGS = {
+  schemaVersion: 1,
+  dualClockEnabled: false,
+  primaryTimeZone: 'system',
+  secondaryTimeZone: 'UTC',
+};
+
+/**
+ * Validate that a time zone string is supported by the runtime.
+ * Returns the zone if valid, or 'system' with a console warning if not.
+ * The special value 'system' is always valid.
+ */
+function validateTimeZone(tz) {
+  if (tz === 'system') {
+    return 'system';
+  }
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: tz });
+    return tz;
+  } catch (e) {
+    console.warn('Invalid time zone "' + tz + '", falling back to system default.');
+    return 'system';
+  }
+}
+
+/**
+ * Merge raw stored data with defaults and validate time zones.
+ * Returns a safe settings object that is always usable.
+ */
+function sanitizeSettings(raw) {
+  var settings = {};
+  settings.schemaVersion = DEFAULT_SETTINGS.schemaVersion;
+  settings.dualClockEnabled =
+    typeof raw.dualClockEnabled === 'boolean'
+      ? raw.dualClockEnabled
+      : DEFAULT_SETTINGS.dualClockEnabled;
+  settings.primaryTimeZone = validateTimeZone(
+    typeof raw.primaryTimeZone === 'string' ? raw.primaryTimeZone : DEFAULT_SETTINGS.primaryTimeZone
+  );
+  settings.secondaryTimeZone = validateTimeZone(
+    typeof raw.secondaryTimeZone === 'string'
+      ? raw.secondaryTimeZone
+      : DEFAULT_SETTINGS.secondaryTimeZone
+  );
+  return settings;
+}
+
+/**
+ * Load settings from chrome.storage.local.
+ * Returns a Promise that resolves with a sanitized settings object.
+ * Falls back to defaults when chrome.storage is unavailable.
+ */
+function loadSettings() {
+  if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
+    return Promise.resolve(sanitizeSettings({}));
+  }
+  return new Promise(function (resolve) {
+    chrome.storage.local.get(SETTINGS_STORAGE_KEY, function (result) {
+      var raw = (result && result[SETTINGS_STORAGE_KEY]) || {};
+      resolve(sanitizeSettings(raw));
+    });
+  });
+}
+
+/**
+ * Save settings to chrome.storage.local.
+ * Returns a Promise that resolves when the write completes.
+ * No-op when chrome.storage is unavailable.
+ */
+function saveSettings(settings) {
+  if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
+    return Promise.resolve();
+  }
+  var data = {};
+  data[SETTINGS_STORAGE_KEY] = settings;
+  return new Promise(function (resolve) {
+    chrome.storage.local.set(data, function () {
+      resolve();
+    });
+  });
+}
+
 /* --- Locale-aware formatting helpers --- */
 
 var _formatterCache = {};
@@ -232,5 +335,12 @@ if (typeof module !== 'undefined' && module.exports) {
     formatDate: formatDate,
     timeDateTimeAttr: timeDateTimeAttr,
     toLocalISODate: toLocalISODate,
+    TIMEZONE_OPTIONS: TIMEZONE_OPTIONS,
+    DEFAULT_SETTINGS: DEFAULT_SETTINGS,
+    SETTINGS_STORAGE_KEY: SETTINGS_STORAGE_KEY,
+    validateTimeZone: validateTimeZone,
+    sanitizeSettings: sanitizeSettings,
+    loadSettings: loadSettings,
+    saveSettings: saveSettings,
   };
 }
