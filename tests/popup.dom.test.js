@@ -79,6 +79,9 @@ describe('Popup DOM rendering', function () {
     var statusEl = document.getElementById('status');
 
     btn.click();
+    /* Status text is set via setTimeout(fn, 0) to force a DOM change
+       that re-triggers screen reader announcement on repeated clicks */
+    jest.advanceTimersByTime(0);
 
     expect(statusEl.textContent).toBe('Time and date updated');
   });

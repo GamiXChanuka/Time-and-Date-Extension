@@ -9,7 +9,11 @@
   <body>
     <main>
       <header class="header">
-        <button id="refreshBtn" type="button" aria-label="Refresh time and date">Refresh</button>
+        <!-- Icon-only button: aria-label provides the accessible name;
+             decorative icon is hidden from assistive technology -->
+        <button id="refreshBtn" type="button" aria-label="Refresh time and date">
+          <span aria-hidden="true">↻</span>
+        </button>
       </header>
       <div class="content">
         <time id="timeValue" datetime="00:00:00">--:--:--</time>
