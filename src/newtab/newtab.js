@@ -545,7 +545,8 @@
         return refreshList();
       })
       .catch(function (err) {
-        console.error('Toggle error:', err);
+        console.error('Failed to toggle alarm:', err);
+        announceStatus('Could not update alarm');
       });
   }
 
@@ -554,14 +555,20 @@
    * @param {string} alarmId
    */
   function handleEdit(alarmId) {
-    storage.getAlarm(alarmId).then(function (alarm) {
-      if (alarm) {
-        populateFormForEdit(alarm);
-        if (_formSection) {
-          _formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    storage
+      .getAlarm(alarmId)
+      .then(function (alarm) {
+        if (alarm) {
+          populateFormForEdit(alarm);
+          if (_formSection) {
+            _formSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
         }
-      }
-    });
+      })
+      .catch(function (err) {
+        console.error('Failed to load alarm for editing:', err);
+        announceStatus('Could not load alarm');
+      });
   }
 
   /**
@@ -592,6 +599,10 @@
         } else if (_timeInput) {
           _timeInput.focus();
         }
+      })
+      .catch(function (err) {
+        console.error('Failed to delete alarm:', err);
+        announceStatus('Could not delete alarm');
       });
   }
 
