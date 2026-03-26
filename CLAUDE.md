@@ -61,6 +61,18 @@ Module-scoped functions inside the `typeof document` guard:
 - `stopTicker()` — clears interval and nulls `_intervalId`; idempotent
 - `initPopup()` — queries DOM elements, calls `safeRender()` + `startTicker()`, wires event listeners; called on `DOMContentLoaded`
 
+## CSS Design Tokens (popup.css)
+
+`:root` custom properties defined at the top of `popup.css`:
+
+- **Colors:** `--color-bg`, `--color-text`, `--color-muted`, `--color-border`, `--color-focus`
+- **Button colors:** `--color-btn-bg`, `--color-btn-hover`, `--color-btn-active`
+- **Typography:** `--font-family`, `--font-size-time/date/btn`, `--font-weight-time/date/btn`, `--line-height-time/date`
+- **Spacing:** `--space-1` (0.25rem) through `--space-4` (1.5rem)
+- **Radius:** `--radius`
+
+All popup styles should reference these tokens rather than hard-coded values.
+
 ## Code Guidelines
 
 - No inline scripts, styles, or event handlers (CSP compliance)
