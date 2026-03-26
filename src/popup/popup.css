@@ -1,28 +1,56 @@
+:root {
+  /* Colors */
+  --color-bg: #ffffff;
+  --color-text: #1a1a1a;
+  --color-muted: #555555;
+  --color-border: #d1d5db;
+  --color-focus: #2563eb;
+
+  /* Button colors */
+  --color-btn-bg: #2563eb;
+  --color-btn-hover: #1d4ed8;
+  --color-btn-active: #1e40af;
+
+  /* Typography */
+  --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-size-time: 2rem;
+  --font-size-date: 1rem;
+  --font-size-btn: 0.875rem;
+  --font-weight-time: 600;
+  --font-weight-date: 400;
+  --font-weight-btn: 500;
+  --line-height-time: 1.2;
+  --line-height-date: 1.5;
+
+  /* Spacing scale */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+
+  /* Border radius */
+  --radius: 0.375rem;
+}
+
 body {
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    Roboto,
-    sans-serif;
+  font-family: var(--font-family);
   margin: 0;
-  padding: 16px;
-  background-color: #ffffff;
-  color: #1a1a1a;
+  padding: var(--space-3);
+  background-color: var(--color-bg);
+  color: var(--color-text);
   min-width: 240px;
-  min-height: 120px;
 }
 
 main {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 32px);
+  min-height: calc(100vh - var(--space-3) * 2);
 }
 
 .header {
   display: flex;
   justify-content: flex-end;
+  margin-bottom: var(--space-2);
 }
 
 .content {
@@ -31,46 +59,54 @@ main {
   align-items: center;
   justify-content: center;
   flex: 1;
-  gap: 4px;
+  gap: var(--space-1);
+  padding: 0 var(--space-2);
   text-align: center;
 }
 
 #timeValue {
   display: block;
-  font-size: 32px;
-  font-weight: 600;
-  color: #1a1a1a;
+  font-size: var(--font-size-time);
+  font-weight: var(--font-weight-time);
+  line-height: var(--line-height-time);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 #dateValue {
   display: block;
-  font-size: 16px;
-  color: #666666;
+  font-size: var(--font-size-date);
+  font-weight: var(--font-weight-date);
+  line-height: var(--line-height-date);
+  color: var(--color-muted);
+  max-width: 100%;
 }
 
 #refreshBtn {
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #ffffff;
-  background-color: #2563eb;
-  border: none;
-  border-radius: 4px;
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-btn);
+  font-weight: var(--font-weight-btn);
+  color: var(--color-bg);
+  background-color: var(--color-btn-bg);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
   cursor: pointer;
 }
 
 #refreshBtn:hover {
-  background-color: #1d4ed8;
+  background-color: var(--color-btn-hover);
 }
 
 #refreshBtn:focus-visible {
-  outline: 3px solid #1a1a1a;
+  outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }
 
 #refreshBtn:active {
-  background-color: #1e40af;
+  background-color: var(--color-btn-active);
 }
 
 #status {
