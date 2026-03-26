@@ -255,10 +255,9 @@ function snippet(text, maxLen) {
  */
 function checkCSP(files) {
   var violations = [];
-  var src = sourceFiles(files);
 
   // --- HTML checks ---
-  var htmlFiles = filterByExt(src, '.html');
+  var htmlFiles = filterByExt(files, '.html');
   htmlFiles.forEach(function (file) {
     var content = readFileSafe(file);
     if (!content) {
@@ -291,7 +290,7 @@ function checkCSP(files) {
   });
 
   // --- JS checks ---
-  var jsFiles = filterByExt(src, '.js');
+  var jsFiles = filterByExt(files, '.js');
   jsFiles.forEach(function (file) {
     var content = readFileSafe(file);
     if (!content) {
@@ -361,10 +360,9 @@ var PROTOCOL_RELATIVE_PATTERN = /(?:src|href)\s*=\s*["']\/\/|url\(\s*["']?\/\//i
  */
 function checkOffline(files) {
   var violations = [];
-  var src = sourceFiles(files);
 
   // --- JS network API checks ---
-  var jsFiles = filterByExt(src, '.js');
+  var jsFiles = filterByExt(files, '.js');
   jsFiles.forEach(function (file) {
     var content = readFileSafe(file);
     if (!content) {
@@ -386,7 +384,7 @@ function checkOffline(files) {
   });
 
   // --- Remote URL checks across all text source files ---
-  var scannable = textFiles(src);
+  var scannable = textFiles(files);
   scannable.forEach(function (file) {
     var content = readFileSafe(file);
     if (!content) {
@@ -445,38 +443,12 @@ var ALLOWED_MANIFEST_KEYS = new Set([
 var INSECURE_CSP_DIRECTIVES = ["'unsafe-inline'", "'unsafe-eval'"];
 
 /**
- * Runs manifest minimalism checks.
- *
- * Rules:
- *  - manifest_version must be exactly 3.
- *  - permissions must be absent or an empty array.
- *  - host_permissions must be absent or an empty array.
- *  - content_security_policy.extension_pages must exist and must not
- *    contain insecure directives ('unsafe-inline', 'unsafe-eval').
- *  - No unexpected top-level keys outside the allowed set.
- *
- * @param {string[]} files - Discovered project files (unused by this check)
+ * Validates a parsed manifest object against project rules.
+ * @param {object} manifest - Parsed manifest.json content
  * @returns {Array<object>} Array of violation objects
  */
-function checkManifest(files) {
-  void files;
+function validateManifestObject(manifest) {
   var violations = [];
-  var content = readFileSafe('manifest.json');
-
-  if (!content) {
-    violations.push(createViolation('manifest.json', null, 'Unable to read manifest.json'));
-    return violations;
-  }
-
-  var manifest;
-  try {
-    manifest = JSON.parse(content);
-  } catch (e) {
-    violations.push(
-      createViolation('manifest.json', null, 'Invalid JSON in manifest.json: ' + e.message)
-    );
-    return violations;
-  }
 
   // manifest_version must be 3
   if (manifest.manifest_version !== 3) {
@@ -547,6 +519,29 @@ function checkManifest(files) {
 }
 
 /**
+ * Runs manifest minimalism checks by reading and parsing manifest.json.
+ * @param {string[]} files - Discovered project files (unused by this check)
+ * @returns {Array<object>} Array of violation objects
+ */
+function checkManifest(files) {
+  void files;
+  var content = readFileSafe('manifest.json');
+
+  if (!content) {
+    return [createViolation('manifest.json', null, 'Unable to read manifest.json')];
+  }
+
+  var manifest;
+  try {
+    manifest = JSON.parse(content);
+  } catch (e) {
+    return [createViolation('manifest.json', null, 'Invalid JSON in manifest.json: ' + e.message)];
+  }
+
+  return validateManifestObject(manifest);
+}
+
+/**
  * Main entry point. Orchestrates all readiness checks.
  * @returns {number} Exit code (0 = pass, 1 = fail)
  */
@@ -562,8 +557,8 @@ function main() {
     return 1;
   }
 
-  // Discover project files
-  const files = discoverFiles();
+  // Discover project files (source-only for CSP and offline checks)
+  const files = sourceFiles(discoverFiles());
 
   // Run all check categories
   const categories = [
@@ -593,4 +588,23 @@ function main() {
   return 1;
 }
 
-process.exit(main());
+// Export internals for testing; run main() only when executed directly
+if (typeof module !== 'undefined' && module.exports && require.main !== module) {
+  module.exports = {
+    checkCSP,
+    checkOffline,
+    checkManifest,
+    validateManifestObject,
+    discoverFiles,
+    filterByExt,
+    textFiles,
+    sourceFiles,
+    readFileSafe,
+    createViolation,
+    scanLines,
+    snippet,
+    ROOT,
+  };
+} else {
+  process.exit(main());
+}
