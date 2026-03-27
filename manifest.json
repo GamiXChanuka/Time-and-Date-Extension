@@ -19,7 +19,7 @@
     "128": "assets/icons/icon128.png"
   },
   "permissions": ["storage", "alarms", "notifications"],
-  "host_permissions": ["https://weather-api167.p.rapidapi.com/*"],
+  "host_permissions": ["https://api.weatherapi.com/*"],
   "background": {
     "service_worker": "src/background/service-worker.js"
   },
