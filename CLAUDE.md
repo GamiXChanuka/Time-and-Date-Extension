@@ -131,15 +131,18 @@ Module-scoped functions inside the `typeof document` guard:
 
 ## CSS Design Tokens (popup.css)
 
-`:root` custom properties defined at the top of `popup.css`:
+iOS-inspired design system. `:root` custom properties defined at the top of `popup.css`:
 
-- **Colors:** `--color-bg`, `--color-text`, `--color-muted`, `--color-border`, `--color-focus`, `--color-danger`, `--color-danger-hover`, `--color-success`
-- **Button colors:** `--color-btn-bg`, `--color-btn-hover`, `--color-btn-active`
-- **Typography:** `--font-family`, `--font-size-time/date/btn/small`, `--font-weight-time/date/btn`, `--line-height-time/date`
-- **Spacing:** `--space-1` (0.25rem) through `--space-4` (1.5rem)
-- **Radius:** `--radius`
+- **Colors:** `--color-bg` (#f2f2f7), `--color-surface` (#ffffff), `--color-text` (#1c1c1e), `--color-muted` (#6e6e73), `--color-border` (#e5e5ea), `--color-focus` (#007aff), `--color-danger` (#ff3b30), `--color-danger-hover`, `--color-success` (#34c759)
+- **Button colors:** `--color-btn-bg` (#007aff), `--color-btn-hover`, `--color-btn-active`
+- **Neutral interaction:** `--color-hover-bg`, `--color-active-bg`
+- **Background:** `--gradient-bg` (subtle diagonal gradient)
+- **Shadows:** `--shadow-card`, `--shadow-btn`
+- **Typography:** `--font-family` (Apple system font stack), `--font-size-time/date/btn/small`, `--font-weight-time/date/btn`, `--line-height-time/date`
+- **Spacing:** `--space-1` (0.25rem) through `--space-5` (2rem)
+- **Radius:** `--radius` (0.75rem), `--radius-sm` (0.5rem), `--radius-full` (pill)
 
-All popup styles should reference these tokens rather than hard-coded values.
+All popup and alarm styles reference these tokens — no hard-coded color/spacing values.
 
 ## Weather Feature (popup)
 
