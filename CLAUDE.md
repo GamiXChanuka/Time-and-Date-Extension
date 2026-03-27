@@ -17,9 +17,11 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `src/popup/popup.html` — popup UI markup
 - `src/popup/popup.css` — popup styles
 - `src/popup/popup.js` — popup behavior
-- `src/newtab/newtab.html` — New Tab alarm clock UI markup
-- `src/newtab/newtab.css` — New Tab alarm clock styles
-- `src/newtab/newtab.js` — New Tab alarm clock behavior
+- `src/popup/alarm.css` — alarm view component styles
+- `src/popup/alarm.js` — alarm view UI module (AlarmUI: init/destroy/refresh lifecycle)
+- `src/newtab/newtab.html` — alarm clock UI markup (legacy, no longer loaded by extension)
+- `src/newtab/newtab.css` — alarm clock styles (legacy, no longer loaded by extension)
+- `src/newtab/newtab.js` — alarm clock behavior (legacy, no longer loaded by extension)
 - `src/background/service-worker.js` — background service worker for alarm scheduling
 - `src/alarm-storage.js` — alarm data model, validation, and chrome.storage.local persistence
 - `scripts/check-csp.js` — CSP compliance validator
@@ -50,9 +52,13 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `primaryClock` — primary clock container section
 - `secondaryClock` — secondary clock container section (hidden by default)
 - `status` — live region for screen reader announcements
+- `clockTab` — tab button for Clock view (`role="tab"`)
+- `alarmTab` — tab button for Alarm view (`role="tab"`)
+- `clockView` — clock tabpanel container (`role="tabpanel"`)
 
-### New Tab (newtab.html)
+### Alarm View (popup.html)
 
+- `alarmView` — alarm view container (hidden by default, shown via tab navigation)
 - `alarmFormSection` — alarm form container section
 - `alarmFormHeading` — form heading (changes between "New Alarm" and "Edit Alarm")
 - `alarmForm` — the `<form>` element
@@ -127,7 +133,7 @@ Module-scoped functions inside the `typeof document` guard:
 
 `:root` custom properties defined at the top of `popup.css`:
 
-- **Colors:** `--color-bg`, `--color-text`, `--color-muted`, `--color-border`, `--color-focus`
+- **Colors:** `--color-bg`, `--color-text`, `--color-muted`, `--color-border`, `--color-focus`, `--color-danger`, `--color-danger-hover`, `--color-success`
 - **Button colors:** `--color-btn-bg`, `--color-btn-hover`, `--color-btn-active`
 - **Typography:** `--font-family`, `--font-size-time/date/btn/small`, `--font-weight-time/date/btn`, `--line-height-time/date`
 - **Spacing:** `--space-1` (0.25rem) through `--space-4` (1.5rem)

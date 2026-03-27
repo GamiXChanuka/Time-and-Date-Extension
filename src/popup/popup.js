@@ -246,6 +246,12 @@ if (typeof document !== 'undefined') {
   var _renderErrorLogged = false;
   var _settings = sanitizeSettings({});
 
+  /* Tab navigation elements */
+  var _clockTabEl = null;
+  var _alarmTabEl = null;
+  var _clockViewEl = null;
+  var _alarmViewEl = null;
+
   /* Weather panel element groups */
   var _primaryWeatherEls = null;
   var _secondaryWeatherEls = null;
@@ -478,6 +484,46 @@ if (typeof document !== 'undefined') {
   };
 
   /**
+   * Switch the active tab and show/hide the corresponding panel.
+   * Manages AlarmUI lifecycle: init + refresh on show, destroy on hide.
+   *
+   * @param {string} tabId - "clockTab" or "alarmTab"
+   */
+  var _switchTab = function _switchTab(tabId) {
+    var isAlarm = tabId === 'alarmTab';
+
+    /* Update tab ARIA state and roving tabindex */
+    if (_clockTabEl) {
+      _clockTabEl.setAttribute('aria-selected', String(!isAlarm));
+      _clockTabEl.tabIndex = isAlarm ? -1 : 0;
+    }
+    if (_alarmTabEl) {
+      _alarmTabEl.setAttribute('aria-selected', String(isAlarm));
+      _alarmTabEl.tabIndex = isAlarm ? 0 : -1;
+    }
+
+    /* Show/hide panels */
+    if (_clockViewEl) {
+      _clockViewEl.hidden = isAlarm;
+    }
+    if (_alarmViewEl) {
+      _alarmViewEl.hidden = !isAlarm;
+    }
+
+    /* Manage AlarmUI lifecycle */
+    if (typeof AlarmUI !== 'undefined') {
+      if (isAlarm) {
+        AlarmUI.init();
+        AlarmUI.refresh();
+      } else {
+        AlarmUI.destroy();
+      }
+    }
+
+    _announceStatus(isAlarm ? 'Alarms view' : 'Clock view');
+  };
+
+  /**
    * Start the 1-second auto-update ticker.
    * No-op if a ticker is already running (single-interval guard).
    */
@@ -618,6 +664,60 @@ if (typeof document !== 'undefined') {
           _refreshWeather(true);
         }
         _announceStatus('Secondary time zone changed');
+      });
+    }
+
+    /* --- Tab navigation --- */
+
+    _clockTabEl = document.getElementById('clockTab');
+    _alarmTabEl = document.getElementById('alarmTab');
+    _clockViewEl = document.getElementById('clockView');
+    _alarmViewEl = document.getElementById('alarmView');
+
+    if (_clockTabEl) {
+      _clockTabEl.addEventListener('click', function () {
+        if (_clockTabEl.getAttribute('aria-selected') !== 'true') {
+          _switchTab('clockTab');
+          _clockTabEl.focus();
+        }
+      });
+    }
+
+    if (_alarmTabEl) {
+      _alarmTabEl.addEventListener('click', function () {
+        if (_alarmTabEl.getAttribute('aria-selected') !== 'true') {
+          _switchTab('alarmTab');
+          _alarmTabEl.focus();
+        }
+      });
+    }
+
+    /* Keyboard navigation: Arrow keys move between tabs (WAI-ARIA Tabs pattern) */
+    var tabBar = document.querySelector('[role="tablist"]');
+    if (tabBar) {
+      tabBar.addEventListener('keydown', function (evt) {
+        var tabs = [_clockTabEl, _alarmTabEl];
+        var currentIndex = tabs.indexOf(document.activeElement);
+        if (currentIndex === -1) {
+          return;
+        }
+
+        var nextIndex = -1;
+        if (evt.key === 'ArrowRight' || evt.key === 'ArrowDown') {
+          nextIndex = (currentIndex + 1) % tabs.length;
+        } else if (evt.key === 'ArrowLeft' || evt.key === 'ArrowUp') {
+          nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+        } else if (evt.key === 'Home') {
+          nextIndex = 0;
+        } else if (evt.key === 'End') {
+          nextIndex = tabs.length - 1;
+        }
+
+        if (nextIndex !== -1 && nextIndex !== currentIndex) {
+          evt.preventDefault();
+          _switchTab(tabs[nextIndex].id);
+          tabs[nextIndex].focus();
+        }
       });
     }
   };

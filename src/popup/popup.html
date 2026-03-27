@@ -5,117 +5,233 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Time & Date Extension</title>
     <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="alarm.css" />
   </head>
   <body>
     <main>
-      <header class="header">
-        <!-- Icon-only button: aria-label provides the accessible name;
-             decorative icon is hidden from assistive technology -->
-        <button id="refreshBtn" type="button" aria-label="Refresh time and date">
-          <span aria-hidden="true">↻</span>
+      <nav class="tab-bar" role="tablist" aria-label="Extension views">
+        <button
+          role="tab"
+          id="clockTab"
+          aria-selected="true"
+          aria-controls="clockView"
+          tabindex="0"
+        >
+          Clock
         </button>
-      </header>
+        <button
+          role="tab"
+          id="alarmTab"
+          aria-selected="false"
+          aria-controls="alarmView"
+          tabindex="-1"
+        >
+          Alarms
+        </button>
+      </nav>
 
-      <div class="clocks">
-        <section class="clock-block" id="primaryClock" aria-label="Primary clock">
-          <div class="clock-header">
-            <span class="clock-label" id="primaryClockLabel">Primary</span>
-            <label class="tz-label" for="primaryTzSelect">Time zone</label>
-            <select id="primaryTzSelect">
-              <option value="system">System default</option>
-              <option value="UTC">UTC</option>
-              <option value="America/New_York">US Eastern (New York)</option>
-              <option value="America/Chicago">US Central (Chicago)</option>
-              <option value="America/Denver">US Mountain (Denver)</option>
-              <option value="America/Los_Angeles">US Pacific (Los Angeles)</option>
-              <option value="Europe/London">UK (London)</option>
-              <option value="Europe/Berlin">Europe Central (Berlin)</option>
-              <option value="Asia/Dubai">Gulf (Dubai)</option>
-              <option value="Asia/Colombo">Sri Lanka (Colombo)</option>
-              <option value="Asia/Tokyo">Japan (Tokyo)</option>
-              <option value="Australia/Sydney">Australia (Sydney)</option>
-            </select>
-          </div>
-          <div class="clock-display">
-            <time id="timeValue" datetime="00:00:00">--:--:--</time>
-            <time id="dateValue" datetime="2000-01-01">--/--/----</time>
-          </div>
-          <div class="weather-panel" id="primaryWeather" aria-label="Weather for primary clock">
-            <div class="weather-content" id="primaryWeatherContent" hidden>
-              <img
-                class="weather-icon"
-                id="primaryWeatherIcon"
-                src=""
-                alt=""
-                width="40"
-                height="40"
-              />
-              <div class="weather-details">
-                <span class="weather-city" id="primaryWeatherCity"></span>
-                <span class="weather-condition" id="primaryWeatherCondition"></span>
-                <span class="weather-temp" id="primaryWeatherTemp"></span>
-              </div>
-            </div>
-            <p class="weather-status" id="primaryWeatherStatus">Weather unavailable</p>
-            <span class="weather-updated" id="primaryWeatherUpdated"></span>
-          </div>
-        </section>
+      <div id="clockView" role="tabpanel" aria-labelledby="clockTab">
+        <header class="header">
+          <!-- Icon-only button: aria-label provides the accessible name;
+               decorative icon is hidden from assistive technology -->
+          <button id="refreshBtn" type="button" aria-label="Refresh time and date">
+            <span aria-hidden="true">↻</span>
+          </button>
+        </header>
 
-        <section class="clock-block" id="secondaryClock" aria-label="Secondary clock" hidden>
-          <div class="clock-header">
-            <span class="clock-label" id="secondaryClockLabel">Secondary</span>
-            <label class="tz-label" for="secondaryTzSelect">Time zone</label>
-            <select id="secondaryTzSelect">
-              <option value="system">System default</option>
-              <option value="UTC" selected>UTC</option>
-              <option value="America/New_York">US Eastern (New York)</option>
-              <option value="America/Chicago">US Central (Chicago)</option>
-              <option value="America/Denver">US Mountain (Denver)</option>
-              <option value="America/Los_Angeles">US Pacific (Los Angeles)</option>
-              <option value="Europe/London">UK (London)</option>
-              <option value="Europe/Berlin">Europe Central (Berlin)</option>
-              <option value="Asia/Dubai">Gulf (Dubai)</option>
-              <option value="Asia/Colombo">Sri Lanka (Colombo)</option>
-              <option value="Asia/Tokyo">Japan (Tokyo)</option>
-              <option value="Australia/Sydney">Australia (Sydney)</option>
-            </select>
-          </div>
-          <div class="clock-display">
-            <time id="secondaryTimeValue" datetime="00:00:00">--:--:--</time>
-            <time id="secondaryDateValue" datetime="2000-01-01">--/--/----</time>
-          </div>
-          <div class="weather-panel" id="secondaryWeather" aria-label="Weather for secondary clock">
-            <div class="weather-content" id="secondaryWeatherContent" hidden>
-              <img
-                class="weather-icon"
-                id="secondaryWeatherIcon"
-                src=""
-                alt=""
-                width="40"
-                height="40"
-              />
-              <div class="weather-details">
-                <span class="weather-city" id="secondaryWeatherCity"></span>
-                <span class="weather-condition" id="secondaryWeatherCondition"></span>
-                <span class="weather-temp" id="secondaryWeatherTemp"></span>
-              </div>
+        <div class="clocks">
+          <section class="clock-block" id="primaryClock" aria-label="Primary clock">
+            <div class="clock-header">
+              <span class="clock-label" id="primaryClockLabel">Primary</span>
+              <label class="tz-label" for="primaryTzSelect">Time zone</label>
+              <select id="primaryTzSelect">
+                <option value="system">System default</option>
+                <option value="UTC">UTC</option>
+                <option value="America/New_York">US Eastern (New York)</option>
+                <option value="America/Chicago">US Central (Chicago)</option>
+                <option value="America/Denver">US Mountain (Denver)</option>
+                <option value="America/Los_Angeles">US Pacific (Los Angeles)</option>
+                <option value="Europe/London">UK (London)</option>
+                <option value="Europe/Berlin">Europe Central (Berlin)</option>
+                <option value="Asia/Dubai">Gulf (Dubai)</option>
+                <option value="Asia/Colombo">Sri Lanka (Colombo)</option>
+                <option value="Asia/Tokyo">Japan (Tokyo)</option>
+                <option value="Australia/Sydney">Australia (Sydney)</option>
+              </select>
             </div>
-            <p class="weather-status" id="secondaryWeatherStatus">Weather unavailable</p>
-            <span class="weather-updated" id="secondaryWeatherUpdated"></span>
-          </div>
-        </section>
+            <div class="clock-display">
+              <time id="timeValue" datetime="00:00:00">--:--:--</time>
+              <time id="dateValue" datetime="2000-01-01">--/--/----</time>
+            </div>
+            <div class="weather-panel" id="primaryWeather" aria-label="Weather for primary clock">
+              <div class="weather-content" id="primaryWeatherContent" hidden>
+                <img
+                  class="weather-icon"
+                  id="primaryWeatherIcon"
+                  src=""
+                  alt=""
+                  width="40"
+                  height="40"
+                />
+                <div class="weather-details">
+                  <span class="weather-city" id="primaryWeatherCity"></span>
+                  <span class="weather-condition" id="primaryWeatherCondition"></span>
+                  <span class="weather-temp" id="primaryWeatherTemp"></span>
+                </div>
+              </div>
+              <p class="weather-status" id="primaryWeatherStatus">Weather unavailable</p>
+              <span class="weather-updated" id="primaryWeatherUpdated"></span>
+            </div>
+          </section>
+
+          <section class="clock-block" id="secondaryClock" aria-label="Secondary clock" hidden>
+            <div class="clock-header">
+              <span class="clock-label" id="secondaryClockLabel">Secondary</span>
+              <label class="tz-label" for="secondaryTzSelect">Time zone</label>
+              <select id="secondaryTzSelect">
+                <option value="system">System default</option>
+                <option value="UTC" selected>UTC</option>
+                <option value="America/New_York">US Eastern (New York)</option>
+                <option value="America/Chicago">US Central (Chicago)</option>
+                <option value="America/Denver">US Mountain (Denver)</option>
+                <option value="America/Los_Angeles">US Pacific (Los Angeles)</option>
+                <option value="Europe/London">UK (London)</option>
+                <option value="Europe/Berlin">Europe Central (Berlin)</option>
+                <option value="Asia/Dubai">Gulf (Dubai)</option>
+                <option value="Asia/Colombo">Sri Lanka (Colombo)</option>
+                <option value="Asia/Tokyo">Japan (Tokyo)</option>
+                <option value="Australia/Sydney">Australia (Sydney)</option>
+              </select>
+            </div>
+            <div class="clock-display">
+              <time id="secondaryTimeValue" datetime="00:00:00">--:--:--</time>
+              <time id="secondaryDateValue" datetime="2000-01-01">--/--/----</time>
+            </div>
+            <div
+              class="weather-panel"
+              id="secondaryWeather"
+              aria-label="Weather for secondary clock"
+            >
+              <div class="weather-content" id="secondaryWeatherContent" hidden>
+                <img
+                  class="weather-icon"
+                  id="secondaryWeatherIcon"
+                  src=""
+                  alt=""
+                  width="40"
+                  height="40"
+                />
+                <div class="weather-details">
+                  <span class="weather-city" id="secondaryWeatherCity"></span>
+                  <span class="weather-condition" id="secondaryWeatherCondition"></span>
+                  <span class="weather-temp" id="secondaryWeatherTemp"></span>
+                </div>
+              </div>
+              <p class="weather-status" id="secondaryWeatherStatus">Weather unavailable</p>
+              <span class="weather-updated" id="secondaryWeatherUpdated"></span>
+            </div>
+          </section>
+        </div>
+
+        <div class="settings">
+          <label class="toggle-label" for="dualClockToggle">
+            <input type="checkbox" id="dualClockToggle" />
+            <span>Second clock</span>
+          </label>
+        </div>
       </div>
 
-      <div class="settings">
-        <label class="toggle-label" for="dualClockToggle">
-          <input type="checkbox" id="dualClockToggle" />
-          <span>Second clock</span>
-        </label>
+      <div id="alarmView" role="tabpanel" aria-labelledby="alarmTab" hidden>
+        <section id="alarmFormSection" aria-label="Alarm form">
+          <h2 id="alarmFormHeading" class="alarm-view-heading">New Alarm</h2>
+
+          <form id="alarmForm" novalidate>
+            <div class="form-row">
+              <label for="alarmTimeInput" class="form-label">Time</label>
+              <input
+                type="time"
+                id="alarmTimeInput"
+                required
+                aria-required="true"
+                aria-describedby="alarmFormErrors"
+              />
+            </div>
+
+            <div class="form-row">
+              <label for="alarmLabelInput" class="form-label">Label (optional)</label>
+              <input
+                type="text"
+                id="alarmLabelInput"
+                maxlength="50"
+                placeholder="e.g. Wake up"
+                autocomplete="off"
+              />
+            </div>
+
+            <fieldset class="form-row day-picker-fieldset">
+              <legend class="form-label">Repeat</legend>
+              <div class="day-picker" id="alarmRepeatDays">
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="0" />
+                  <span>Sun</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="1" />
+                  <span>Mon</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="2" />
+                  <span>Tue</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="3" />
+                  <span>Wed</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="4" />
+                  <span>Thu</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="5" />
+                  <span>Fri</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="6" />
+                  <span>Sat</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="form-row">
+              <label class="alarm-toggle-form" for="alarmEnabledToggle">
+                <input type="checkbox" id="alarmEnabledToggle" checked />
+                <span>Enabled</span>
+              </label>
+            </div>
+
+            <div id="alarmFormErrors" class="form-errors" role="alert" aria-live="assertive"></div>
+
+            <div class="form-actions">
+              <button type="submit" id="alarmSaveBtn" class="btn btn-primary">Save</button>
+              <button type="button" id="alarmCancelBtn" class="btn btn-secondary" hidden>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section id="alarmListSection" aria-label="Your alarms">
+          <h2 class="alarm-view-heading">Alarms</h2>
+          <div id="alarmList"></div>
+          <p id="alarmEmptyState" class="empty-state">No alarms yet. Create one above.</p>
+        </section>
       </div>
 
       <div id="status" role="status" aria-live="polite" aria-atomic="true"></div>
     </main>
+    <script src="../alarm-storage.js"></script>
     <script src="weather.js"></script>
+    <script src="alarm.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

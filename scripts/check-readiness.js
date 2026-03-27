@@ -460,7 +460,6 @@ var ALLOWED_MANIFEST_KEYS = new Set([
   'permissions',
   'host_permissions',
   'background',
-  'chrome_url_overrides',
 ]);
 
 /** Insecure CSP directives that must not appear in extension_pages. */
