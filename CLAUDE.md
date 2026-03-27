@@ -148,6 +148,8 @@ All popup and alarm styles reference these tokens — no hard-coded color/spacin
 
 The popup displays per-clock weather using WeatherAPI.com (`GET /v1/current.json`). The API key is **hardcoded** in `weather.js` as `WEATHER_API_KEY` (treated as non-secret per story requirements). Weather works with zero user configuration — there is no API key input UI.
 
+Default weather location is derived from the user's locale region (e.g. `en-GB` → London, `si-LK` → Colombo). Falls back to New York (US) when region is undetectable. Specific IANA timezone selections (e.g. `Europe/Berlin`) use the timezone→location map instead.
+
 Configuration:
 
 - `manifest.json` declares `host_permissions: ["https://api.weatherapi.com/*"]` for fetch access
@@ -160,6 +162,7 @@ Key weather.js exports:
 - `usesFahrenheit()` — locale-based temperature unit detection (Fahrenheit for en-US/en-LR/en-MM)
 - `normalizeIconUrl(url)` — prepends `https:` to protocol-relative icon URLs
 - `parseWeatherResponse(data)` — maps WeatherAPI.com response to `{city, condition, icon, temp, tempUnit}`
+- `getLocaleRegion()` / `getDefaultLocation()` — locale-derived default weather location (GB→London, LK→Colombo, etc.)
 - `getWeatherLocation(tz)` / `getWeather(lat, lon, force)` / `clearWeatherCache()` — location mapping and cached fetch
 - `getConditionCategory(conditionText)` — maps WeatherAPI.com condition text to animation category (clear/clouds/rain/thunder/snow/mist)
 
