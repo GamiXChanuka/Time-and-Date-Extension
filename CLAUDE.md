@@ -143,11 +143,21 @@ All popup styles should reference these tokens rather than hard-coded values.
 
 ## Weather Feature (popup)
 
-The popup displays per-clock weather using the RapidAPI current weather endpoint. Configuration:
+The popup displays per-clock weather using WeatherAPI.com (`GET /v1/current.json`). The API key is **user-provided** and stored in `chrome.storage.local` under the key `weatherApiKey` — no key is shipped in the repository. When no key is configured, the weather section shows an "API key required" state without breaking time/date display.
 
-- `manifest.json` declares `host_permissions: ["https://weather-api167.p.rapidapi.com/*"]` for fetch access
-- `scripts/check-readiness.js` allowlists: `NETWORK_API_ALLOWED_FILES` (popup files permitted to use `fetch()`), `ALLOWED_REMOTE_ORIGINS` (RapidAPI URL), and `ALLOWED_HOST_PERMISSIONS` (manifest host permission)
+Configuration:
+
+- `manifest.json` declares `host_permissions: ["https://api.weatherapi.com/*"]` for fetch access
+- `scripts/check-readiness.js` allowlists: `NETWORK_API_ALLOWED_FILES` (popup files permitted to use `fetch()`), `ALLOWED_REMOTE_ORIGINS` (WeatherAPI.com URL), and `ALLOWED_HOST_PERMISSIONS` (manifest host permission)
 - `src/popup/weather.js` — weather fetch, caching, and rendering module (loaded by popup.html)
+
+Key weather.js exports:
+
+- `getApiKey()` / `setApiKey(key)` — read/write the user's API key from chrome.storage.local
+- `usesFahrenheit()` — locale-based temperature unit detection (Fahrenheit for en-US/en-LR/en-MM)
+- `normalizeIconUrl(url)` — prepends `https:` to protocol-relative icon URLs
+- `parseWeatherResponse(data)` — maps WeatherAPI.com response to `{city, condition, icon, temp, tempUnit}`
+- `getWeatherLocation(tz)` / `getWeather(lat, lon, force)` / `clearWeatherCache()` — location mapping and cached fetch
 
 ## Code Guidelines
 

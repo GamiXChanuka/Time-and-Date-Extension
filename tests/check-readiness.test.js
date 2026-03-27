@@ -268,9 +268,9 @@ describe('validateManifestObject', function () {
     ).toBe(true);
   });
 
-  it('allows the RapidAPI weather host permission', function () {
+  it('allows the WeatherAPI.com host permission', function () {
     var violations = validateManifestObject(
-      goodManifest({ host_permissions: ['https://weather-api167.p.rapidapi.com/*'] })
+      goodManifest({ host_permissions: ['https://api.weatherapi.com/*'] })
     );
     expect(violations).toHaveLength(0);
   });
@@ -287,7 +287,7 @@ describe('validateManifestObject', function () {
   it('fails if disallowed host permission is mixed with allowed ones', function () {
     var violations = validateManifestObject(
       goodManifest({
-        host_permissions: ['https://weather-api167.p.rapidapi.com/*', 'https://example.com/*'],
+        host_permissions: ['https://api.weatherapi.com/*', 'https://example.com/*'],
       })
     );
     expect(

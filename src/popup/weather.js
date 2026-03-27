@@ -1,16 +1,22 @@
 /**
  * Weather data module for the popup.
  *
- * Provides location mapping, API fetch, and defensive response parsing.
+ * Fetches current weather from WeatherAPI.com and exposes a cached,
+ * rate-limited interface for the popup to consume.
+ *
+ * The API key is user-provided and stored in chrome.storage.local —
+ * no key is shipped in the repository.
+ *
  * Exposes functions on `self.Weather` for browser use and via
  * `module.exports` for Node-based test runners.
  */
 
 /* --- Constants --- */
 
-var WEATHER_API_URL = 'https://weather-api167.p.rapidapi.com/api/weather/current';
-var WEATHER_API_HOST = 'weather-api167.p.rapidapi.com';
-var WEATHER_API_KEY = '4e4d7e5b40msh34837e23b23ad5cp18a005jsn3c0f4e72775e';
+var WEATHER_API_URL = 'https://api.weatherapi.com/v1/current.json';
+
+/** chrome.storage.local key where the user's WeatherAPI key is stored. */
+var WEATHER_API_KEY_STORAGE_KEY = 'weatherApiKey';
 
 /* --- Timezone → location mapping --- */
 
@@ -46,19 +52,115 @@ function getWeatherLocation(timeZone) {
   return WEATHER_LOCATIONS[timeZone] || WEATHER_LOCATIONS.system;
 }
 
+/* --- API key management --- */
+
+/**
+ * Read the WeatherAPI.com key from chrome.storage.local.
+ * Returns an empty string when storage is unavailable or no key is set.
+ *
+ * @returns {Promise<string>}
+ */
+function getApiKey() {
+  if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
+    return Promise.resolve('');
+  }
+  return new Promise(function (resolve) {
+    chrome.storage.local.get(WEATHER_API_KEY_STORAGE_KEY, function (result) {
+      if (chrome.runtime && chrome.runtime.lastError) {
+        console.error('Weather: failed to read API key —', chrome.runtime.lastError.message);
+        resolve('');
+        return;
+      }
+      resolve(result[WEATHER_API_KEY_STORAGE_KEY] || '');
+    });
+  });
+}
+
+/**
+ * Save a WeatherAPI.com key to chrome.storage.local.
+ * No-op when storage is unavailable.
+ *
+ * @param {string} key - The API key to store
+ * @returns {Promise<void>}
+ */
+function setApiKey(key) {
+  if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
+    return Promise.resolve();
+  }
+  var payload = {};
+  payload[WEATHER_API_KEY_STORAGE_KEY] = key;
+  return new Promise(function (resolve) {
+    chrome.storage.local.set(payload, function () {
+      if (chrome.runtime && chrome.runtime.lastError) {
+        console.error('Weather: failed to save API key —', chrome.runtime.lastError.message);
+      }
+      resolve();
+    });
+  });
+}
+
+/* --- Temperature unit detection --- */
+
+/**
+ * Locales that conventionally use Fahrenheit.
+ * @type {string[]}
+ */
+var FAHRENHEIT_LOCALES = ['en-US', 'en-LR', 'en-MM'];
+
+/**
+ * Determine whether the user's locale prefers Fahrenheit.
+ * Checks navigator.language (browser) against the short list of
+ * Fahrenheit-primary locales. Defaults to Celsius.
+ *
+ * @returns {boolean} true if Fahrenheit should be used
+ */
+function usesFahrenheit() {
+  if (typeof navigator === 'undefined' || !navigator.language) {
+    return false;
+  }
+  var lang = navigator.language;
+  for (var i = 0; i < FAHRENHEIT_LOCALES.length; i++) {
+    if (lang === FAHRENHEIT_LOCALES[i] || lang.indexOf(FAHRENHEIT_LOCALES[i] + '-') === 0) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /* --- Response parsing --- */
 
 /**
- * Defensively parse a weather API response into a WeatherDTO.
+ * Normalize a weather icon URL to use the https: protocol.
+ * WeatherAPI.com returns protocol-relative URLs (e.g. "//cdn.weatherapi.com/...").
+ *
+ * @param {string} url - Raw icon URL from the API
+ * @returns {string} URL with https: prefix
+ */
+function normalizeIconUrl(url) {
+  if (typeof url !== 'string' || url.length === 0) {
+    return '';
+  }
+  if (url.indexOf('//') === 0) {
+    return 'https:' + url;
+  }
+  return url;
+}
+
+/**
+ * Defensively parse a WeatherAPI.com current.json response into a WeatherDTO.
  *
  * Expected API shape:
- *   { name, weather: [{description, icon}], main: {temprature} }
- *
- * Note: the API misspells "temperature" as "temprature".
- * We try both spellings for forward-compatibility.
+ *   {
+ *     location: { name, region, country },
+ *     current: {
+ *       temp_c: number,
+ *       temp_f: number,
+ *       condition: { text: string, icon: string }
+ *     }
+ *   }
  *
  * @param {object} data - Raw parsed JSON from the API
- * @returns {{city: string, condition: string, icon: string, temp: number|null}|null}
+ * @returns {{city: string, condition: string, icon: string, temp: number, tempUnit: string}|null}
  *   Returns null if the response lacks minimum usable data.
  */
 function parseWeatherResponse(data) {
@@ -66,31 +168,45 @@ function parseWeatherResponse(data) {
     return null;
   }
 
-  var city = typeof data.name === 'string' ? data.name : '';
+  /* Location label */
+  var city = '';
+  if (data.location && typeof data.location === 'object') {
+    city = typeof data.location.name === 'string' ? data.location.name : '';
+  }
 
+  /* Condition text and icon */
   var condition = '';
   var icon = '';
-  if (Array.isArray(data.weather) && data.weather.length > 0) {
-    var w = data.weather[0];
-    if (w && typeof w === 'object') {
-      condition = typeof w.description === 'string' ? w.description : '';
-      icon = typeof w.icon === 'string' ? w.icon : '';
-    }
+  if (
+    data.current &&
+    typeof data.current === 'object' &&
+    data.current.condition &&
+    typeof data.current.condition === 'object'
+  ) {
+    var cond = data.current.condition;
+    condition = typeof cond.text === 'string' ? cond.text : '';
+    icon = normalizeIconUrl(cond.icon || '');
   }
 
+  /* Temperature — pick unit based on locale */
   var temp = null;
-  if (data.main && typeof data.main === 'object') {
-    // Handle the documented "temprature" misspelling first, then standard spelling
-    if (typeof data.main.temprature === 'number') {
-      temp = data.main.temprature;
-    } else if (typeof data.main.temperature === 'number') {
-      temp = data.main.temperature;
-    } else if (typeof data.main.temp === 'number') {
-      temp = data.main.temp;
+  var tempUnit = '';
+  if (data.current && typeof data.current === 'object') {
+    var fahrenheit = usesFahrenheit();
+    if (fahrenheit && typeof data.current.temp_f === 'number') {
+      temp = data.current.temp_f;
+      tempUnit = '°F';
+    } else if (typeof data.current.temp_c === 'number') {
+      temp = data.current.temp_c;
+      tempUnit = '°C';
+    } else if (typeof data.current.temp_f === 'number') {
+      /* Fallback: use whichever is available */
+      temp = data.current.temp_f;
+      tempUnit = '°F';
     }
   }
 
-  // Require at least a temperature to be considered usable
+  /* Require at least a temperature to be considered usable */
   if (temp === null) {
     return null;
   }
@@ -100,6 +216,7 @@ function parseWeatherResponse(data) {
     condition: condition,
     icon: icon,
     temp: temp,
+    tempUnit: tempUnit,
   };
 }
 
@@ -108,51 +225,53 @@ function parseWeatherResponse(data) {
 /**
  * Fetch current weather for a given latitude and longitude.
  *
- * Uses the RapidAPI current weather endpoint with metric units.
+ * Uses WeatherAPI.com current.json with the user-provided API key.
  * Returns a parsed WeatherDTO on success, or null on any failure.
- * Errors are logged to the console with redacted messages (no API key).
  *
  * @param {number} lat - Latitude
  * @param {number} lon - Longitude
- * @returns {Promise<{city: string, condition: string, icon: string, temp: number}|null>}
+ * @returns {Promise<{city: string, condition: string, icon: string, temp: number, tempUnit: string}|null>}
  */
 function fetchWeather(lat, lon) {
-  var url =
-    WEATHER_API_URL +
-    '?lat=' +
-    encodeURIComponent(lat) +
-    '&lon=' +
-    encodeURIComponent(lon) +
-    '&units=metric&lang=en&mode=json';
-
-  return fetch(url, {
-    method: 'GET',
-    headers: {
-      'x-rapidapi-host': WEATHER_API_HOST,
-      'x-rapidapi-key': WEATHER_API_KEY,
-    },
-  })
-    .then(function (response) {
-      if (!response.ok) {
-        console.error('Weather: API returned status ' + response.status);
-        return null;
-      }
-      return response.json();
-    })
-    .then(function (data) {
-      if (data === null) {
-        return null;
-      }
-      var dto = parseWeatherResponse(data);
-      if (!dto) {
-        console.error('Weather: unexpected response structure');
-      }
-      return dto;
-    })
-    .catch(function (err) {
-      console.error('Weather: fetch failed —', err && err.message ? err.message : 'unknown error');
+  return getApiKey().then(function (apiKey) {
+    if (!apiKey) {
+      console.warn('Weather: no API key configured');
       return null;
-    });
+    }
+
+    var url =
+      WEATHER_API_URL +
+      '?key=' +
+      encodeURIComponent(apiKey) +
+      '&q=' +
+      encodeURIComponent(lat + ',' + lon);
+
+    return fetch(url, { method: 'GET' })
+      .then(function (response) {
+        if (!response.ok) {
+          console.error('Weather: API returned status ' + response.status);
+          return null;
+        }
+        return response.json();
+      })
+      .then(function (data) {
+        if (data === null) {
+          return null;
+        }
+        var dto = parseWeatherResponse(data);
+        if (!dto) {
+          console.error('Weather: unexpected response structure');
+        }
+        return dto;
+      })
+      .catch(function (err) {
+        console.error(
+          'Weather: fetch failed —',
+          err && err.message ? err.message : 'unknown error'
+        );
+        return null;
+      });
+  });
 }
 
 /* --- In-session caching and rate limiting --- */
@@ -230,11 +349,15 @@ function clearWeatherCache() {
 
 var _weatherExports = {
   WEATHER_API_URL: WEATHER_API_URL,
-  WEATHER_API_HOST: WEATHER_API_HOST,
+  WEATHER_API_KEY_STORAGE_KEY: WEATHER_API_KEY_STORAGE_KEY,
   WEATHER_LOCATIONS: WEATHER_LOCATIONS,
   AUTO_REFRESH_INTERVAL_MS: AUTO_REFRESH_INTERVAL_MS,
   MANUAL_REFRESH_DEBOUNCE_MS: MANUAL_REFRESH_DEBOUNCE_MS,
   getWeatherLocation: getWeatherLocation,
+  getApiKey: getApiKey,
+  setApiKey: setApiKey,
+  usesFahrenheit: usesFahrenheit,
+  normalizeIconUrl: normalizeIconUrl,
   parseWeatherResponse: parseWeatherResponse,
   fetchWeather: fetchWeather,
   getWeather: getWeather,

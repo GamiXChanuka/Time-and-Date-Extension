@@ -336,7 +336,7 @@ var NETWORK_APIS = [
 var NETWORK_API_ALLOWED_FILES = ['src/popup/weather.js', 'src/popup/popup.js'];
 
 /** Remote URL origins permitted in source files. */
-var ALLOWED_REMOTE_ORIGINS = ['https://weather-api167.p.rapidapi.com/'];
+var ALLOWED_REMOTE_ORIGINS = ['https://api.weatherapi.com/'];
 
 /**
  * Pattern matching remote URLs (http:// or https://).
@@ -506,7 +506,7 @@ function validateManifestObject(manifest) {
   }
 
   // host_permissions must only contain allowed origins
-  var ALLOWED_HOST_PERMISSIONS = ['https://weather-api167.p.rapidapi.com/*'];
+  var ALLOWED_HOST_PERMISSIONS = ['https://api.weatherapi.com/*'];
   if (manifest.host_permissions && manifest.host_permissions.length > 0) {
     var disallowedHosts = manifest.host_permissions.filter(function (h) {
       return ALLOWED_HOST_PERMISSIONS.indexOf(h) === -1;
