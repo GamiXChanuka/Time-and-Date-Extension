@@ -290,6 +290,7 @@ if (typeof document !== 'undefined') {
    */
   var _queryWeatherEls = function _queryWeatherEls(prefix) {
     return {
+      panel: document.getElementById(prefix + 'Weather'),
       content: document.getElementById(prefix + 'WeatherContent'),
       icon: document.getElementById(prefix + 'WeatherIcon'),
       city: document.getElementById(prefix + 'WeatherCity'),
@@ -334,6 +335,9 @@ if (typeof document !== 'undefined') {
       if (els.updated) {
         els.updated.textContent = '';
       }
+      if (els.panel) {
+        delete els.panel.dataset.weatherCategory;
+      }
       return;
     }
 
@@ -357,6 +361,11 @@ if (typeof document !== 'undefined') {
         els.icon.src = '';
         els.icon.alt = '';
       }
+    }
+
+    /* Set condition category for CSS animation */
+    if (els.panel && typeof Weather !== 'undefined') {
+      els.panel.dataset.weatherCategory = Weather.getConditionCategory(data.condition);
     }
 
     /* Show content, hide status */

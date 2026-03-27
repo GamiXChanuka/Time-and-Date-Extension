@@ -345,6 +345,55 @@ function clearWeatherCache() {
   _weatherCache = {};
 }
 
+/* --- Condition category mapping --- */
+
+/**
+ * Map a WeatherAPI.com condition text to a broad animation category.
+ *
+ * Categories: "clear", "clouds", "rain", "thunder", "snow", "mist".
+ * Uses keyword matching on the lowercased condition string.
+ * Falls back to "clear" for unrecognised conditions.
+ *
+ * @param {string} conditionText - The condition.text from WeatherAPI.com
+ * @returns {string} One of the six category identifiers
+ */
+function getConditionCategory(conditionText) {
+  if (typeof conditionText !== 'string' || conditionText.length === 0) {
+    return 'clear';
+  }
+  var text = conditionText.toLowerCase();
+
+  if (text.indexOf('thunder') !== -1) {
+    return 'thunder';
+  }
+  if (
+    text.indexOf('snow') !== -1 ||
+    text.indexOf('blizzard') !== -1 ||
+    text.indexOf('sleet') !== -1 ||
+    text.indexOf('ice pellet') !== -1
+  ) {
+    return 'snow';
+  }
+  if (
+    text.indexOf('rain') !== -1 ||
+    text.indexOf('drizzle') !== -1 ||
+    text.indexOf('shower') !== -1
+  ) {
+    return 'rain';
+  }
+  if (text.indexOf('mist') !== -1 || text.indexOf('fog') !== -1 || text.indexOf('haze') !== -1) {
+    return 'mist';
+  }
+  if (
+    text.indexOf('cloud') !== -1 ||
+    text.indexOf('overcast') !== -1 ||
+    text.indexOf('partly') !== -1
+  ) {
+    return 'clouds';
+  }
+  return 'clear';
+}
+
 /* --- Exports --- */
 
 var _weatherExports = {
@@ -362,6 +411,7 @@ var _weatherExports = {
   fetchWeather: fetchWeather,
   getWeather: getWeather,
   clearWeatherCache: clearWeatherCache,
+  getConditionCategory: getConditionCategory,
 };
 
 // Browser: expose on self for popup.js to consume
