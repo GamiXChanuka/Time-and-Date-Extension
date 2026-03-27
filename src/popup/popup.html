@@ -139,6 +139,21 @@
             <span>Second clock</span>
           </label>
         </div>
+
+        <div class="settings api-key-settings">
+          <label for="weatherApiKeyInput" class="api-key-label">Weather API key</label>
+          <div class="api-key-row">
+            <input
+              type="password"
+              id="weatherApiKeyInput"
+              class="api-key-input"
+              placeholder="Enter WeatherAPI.com key"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button type="button" id="weatherApiKeySaveBtn" class="btn btn-small">Save</button>
+          </div>
+        </div>
       </div>
 
       <div id="alarmView" role="tabpanel" aria-labelledby="alarmTab" hidden>
