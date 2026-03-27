@@ -23,9 +23,6 @@
   "background": {
     "service_worker": "src/background/service-worker.js"
   },
-  "chrome_url_overrides": {
-    "newtab": "src/newtab/newtab.html"
-  },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"
   }

@@ -338,14 +338,24 @@ describe('validateManifestObject', function () {
     ).toBe(true);
   });
 
-  it('allows background and chrome_url_overrides keys', function () {
+  it('allows background key', function () {
     var violations = validateManifestObject(
       goodManifest({
         background: { service_worker: 'bg.js' },
-        chrome_url_overrides: { newtab: 'newtab.html' },
       })
     );
     expect(violations).toHaveLength(0);
+  });
+
+  it('rejects chrome_url_overrides as unexpected key', function () {
+    var violations = validateManifestObject(
+      goodManifest({ chrome_url_overrides: { newtab: 'newtab.html' } })
+    );
+    expect(
+      violations.some(function (v) {
+        return v.message.match(/Unexpected.*chrome_url_overrides/);
+      })
+    ).toBe(true);
   });
 
   it('fails if manifest contains unexpected keys', function () {
