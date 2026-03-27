@@ -52,6 +52,9 @@ Time & Date Extension — a lightweight Chrome MV3 extension that displays curre
 - `primaryClock` — primary clock container section
 - `secondaryClock` — secondary clock container section (hidden by default)
 - `status` — live region for screen reader announcements
+- `clockTab` — tab button for Clock view (`role="tab"`)
+- `alarmTab` — tab button for Alarm view (`role="tab"`)
+- `clockView` — clock tabpanel container (`role="tabpanel"`)
 
 ### Alarm View (popup.html)
 
