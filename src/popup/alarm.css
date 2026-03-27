@@ -1,0 +1,333 @@
+/* --- Alarm view: form section --- */
+
+#alarmFormSection {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--space-3);
+}
+
+#alarmForm {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.form-label {
+  font-size: var(--font-size-btn);
+  font-weight: var(--font-weight-btn);
+  color: var(--color-text);
+}
+
+/* --- Inputs --- */
+
+input[type='time'],
+input[type='text'] {
+  font-family: var(--font-family);
+  font-size: var(--font-size-btn);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+}
+
+input[type='time']:focus-visible,
+input[type='text']:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* --- Day picker --- */
+
+.day-picker-fieldset {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.day-picker-fieldset legend {
+  padding: 0;
+  margin-bottom: var(--space-1);
+}
+
+.day-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.day-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.day-chip input[type='checkbox'] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.day-chip span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2.25rem;
+  padding: var(--space-1);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-btn);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition:
+    background-color 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+  user-select: none;
+}
+
+.day-chip input[type='checkbox']:checked + span {
+  background-color: var(--color-btn-bg);
+  border-color: var(--color-btn-bg);
+  color: var(--color-bg);
+}
+
+.day-chip input[type='checkbox']:focus-visible + span {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* --- Alarm form toggle --- */
+
+.alarm-toggle-form {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-btn);
+  font-weight: var(--font-weight-btn);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.alarm-toggle-form input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--color-btn-bg);
+}
+
+.alarm-toggle-form input[type='checkbox']:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* --- Form errors --- */
+
+.form-errors {
+  font-size: var(--font-size-small);
+  color: var(--color-danger);
+  min-height: 1em;
+}
+
+.form-errors:empty {
+  display: none;
+}
+
+/* --- Form action buttons --- */
+
+.form-actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.btn {
+  font-family: var(--font-family);
+  font-size: var(--font-size-btn);
+  font-weight: var(--font-weight-btn);
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+
+.btn:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.btn-primary {
+  color: var(--color-bg);
+  background-color: var(--color-btn-bg);
+}
+
+.btn-primary:hover {
+  background-color: var(--color-btn-hover);
+}
+
+.btn-primary:active {
+  background-color: var(--color-btn-active);
+}
+
+.btn-secondary {
+  color: var(--color-text);
+  background-color: var(--color-bg);
+  border-color: var(--color-border);
+}
+
+.btn-secondary:hover {
+  background-color: #f3f4f6;
+}
+
+.btn-secondary:active {
+  background-color: #e5e7eb;
+}
+
+/* --- Alarm list --- */
+
+#alarmListSection {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--space-2);
+}
+
+.alarm-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  margin-bottom: var(--space-2);
+}
+
+.alarm-card[data-disabled='true'] {
+  opacity: 0.55;
+}
+
+.alarm-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.alarm-time {
+  font-size: var(--font-size-date);
+  font-weight: var(--font-weight-time);
+  line-height: var(--line-height-time);
+  font-variant-numeric: tabular-nums;
+}
+
+.alarm-label {
+  font-size: var(--font-size-btn);
+  font-weight: var(--font-weight-date);
+  line-height: var(--line-height-date);
+  color: var(--color-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.alarm-meta {
+  font-size: var(--font-size-small);
+  color: var(--color-muted);
+  line-height: var(--line-height-date);
+}
+
+.alarm-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex-shrink: 0;
+}
+
+.alarm-actions .btn-icon {
+  font-family: var(--font-family);
+  font-size: var(--font-size-small);
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.alarm-actions .btn-icon:hover {
+  background-color: #f3f4f6;
+}
+
+.alarm-actions .btn-icon:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.alarm-actions .btn-icon:active {
+  background-color: #e5e7eb;
+}
+
+.alarm-actions .btn-danger {
+  color: var(--color-danger);
+  border-color: var(--color-danger);
+}
+
+.alarm-actions .btn-danger:hover {
+  background-color: var(--color-danger);
+  color: var(--color-bg);
+}
+
+.alarm-actions .btn-danger:active {
+  background-color: var(--color-danger-hover);
+  color: var(--color-bg);
+}
+
+/* --- Enable toggle in alarm card --- */
+
+.alarm-toggle-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.alarm-toggle-label input[type='checkbox'] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  cursor: pointer;
+  accent-color: var(--color-btn-bg);
+}
+
+.alarm-toggle-label input[type='checkbox']:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* --- Empty state --- */
+
+.empty-state {
+  font-size: var(--font-size-btn);
+  color: var(--color-muted);
+  text-align: center;
+  padding: var(--space-3) 0;
+  margin: 0;
+}
+
+/* --- Alarm view heading --- */
+
+.alarm-view-heading {
+  font-size: var(--font-size-btn);
+  font-weight: var(--font-weight-time);
+  line-height: var(--line-height-date);
+  margin: 0 0 var(--space-2);
+  color: var(--color-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}

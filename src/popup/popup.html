@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Time & Date Extension</title>
     <link rel="stylesheet" href="popup.css" />
+    <link rel="stylesheet" href="alarm.css" />
   </head>
   <body>
     <main>
@@ -113,9 +114,98 @@
         </label>
       </div>
 
+      <!-- Alarm view (hidden until user switches tab) -->
+      <div id="alarmView" hidden>
+        <section id="alarmFormSection" aria-label="Alarm form">
+          <h2 id="alarmFormHeading" class="alarm-view-heading">New Alarm</h2>
+
+          <form id="alarmForm" novalidate>
+            <div class="form-row">
+              <label for="alarmTimeInput" class="form-label">Time</label>
+              <input
+                type="time"
+                id="alarmTimeInput"
+                required
+                aria-required="true"
+                aria-describedby="alarmFormErrors"
+              />
+            </div>
+
+            <div class="form-row">
+              <label for="alarmLabelInput" class="form-label">Label (optional)</label>
+              <input
+                type="text"
+                id="alarmLabelInput"
+                maxlength="50"
+                placeholder="e.g. Wake up"
+                autocomplete="off"
+              />
+            </div>
+
+            <fieldset class="form-row day-picker-fieldset">
+              <legend class="form-label">Repeat</legend>
+              <div class="day-picker" id="alarmRepeatDays">
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="0" />
+                  <span>Sun</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="1" />
+                  <span>Mon</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="2" />
+                  <span>Tue</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="3" />
+                  <span>Wed</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="4" />
+                  <span>Thu</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="5" />
+                  <span>Fri</span>
+                </label>
+                <label class="day-chip">
+                  <input type="checkbox" name="repeatDay" value="6" />
+                  <span>Sat</span>
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="form-row">
+              <label class="alarm-toggle-form" for="alarmEnabledToggle">
+                <input type="checkbox" id="alarmEnabledToggle" checked />
+                <span>Enabled</span>
+              </label>
+            </div>
+
+            <div id="alarmFormErrors" class="form-errors" role="alert" aria-live="assertive"></div>
+
+            <div class="form-actions">
+              <button type="submit" id="alarmSaveBtn" class="btn btn-primary">Save</button>
+              <button type="button" id="alarmCancelBtn" class="btn btn-secondary" hidden>
+                Cancel
+              </button>
+            </div>
+          </form>
+        </section>
+
+        <section id="alarmListSection" aria-label="Your alarms">
+          <h2 class="alarm-view-heading">Alarms</h2>
+          <div id="alarmList"></div>
+          <p id="alarmEmptyState" class="empty-state">No alarms yet. Create one above.</p>
+        </section>
+      </div>
+
       <div id="status" role="status" aria-live="polite" aria-atomic="true"></div>
     </main>
+    <script src="../alarm-storage.js"></script>
     <script src="weather.js"></script>
+    <script src="alarm.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

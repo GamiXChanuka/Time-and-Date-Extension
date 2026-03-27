@@ -5,6 +5,9 @@
   --color-muted: #555555;
   --color-border: #d1d5db;
   --color-focus: #2563eb;
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-success: #16a34a;
 
   /* Button colors */
   --color-btn-bg: #2563eb;
