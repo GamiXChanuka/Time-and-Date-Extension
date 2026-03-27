@@ -330,6 +330,15 @@ var NETWORK_APIS = [
 ];
 
 /**
+ * Files allowed to use network APIs (fetch).
+ * Uses forward-slash paths for cross-platform matching.
+ */
+var NETWORK_API_ALLOWED_FILES = ['src/popup/weather.js', 'src/popup/popup.js'];
+
+/** Remote URL origins permitted in source files. */
+var ALLOWED_REMOTE_ORIGINS = ['https://weather-api167.p.rapidapi.com/'];
+
+/**
  * Pattern matching remote URLs (http:// or https://).
  * Lines containing chrome-extension:// are allowed and filtered out.
  */
@@ -364,12 +373,19 @@ function checkOffline(files) {
   // --- JS network API checks ---
   var jsFiles = filterByExt(files, '.js');
   jsFiles.forEach(function (file) {
+    var normalised = file.split(path.sep).join('/');
+    var isAllowedFile = NETWORK_API_ALLOWED_FILES.indexOf(normalised) !== -1;
+
     var content = readFileSafe(file);
     if (!content) {
       return;
     }
 
     NETWORK_APIS.forEach(function (api) {
+      // Allow fetch() in explicitly permitted files
+      if (isAllowedFile && api.label === 'fetch(') {
+        return;
+      }
       var hits = scanLines(content, api.pattern);
       hits.forEach(function (m) {
         violations.push(
@@ -391,10 +407,16 @@ function checkOffline(files) {
       return;
     }
 
-    // http:// and https:// references (skip allowed schemes)
+    // http:// and https:// references (skip allowed schemes and origins)
     var remoteHits = scanLines(content, REMOTE_URL_PATTERN);
     remoteHits.forEach(function (m) {
       if (ALLOWED_SCHEME_PATTERN.test(m.text)) {
+        return;
+      }
+      var isAllowedOrigin = ALLOWED_REMOTE_ORIGINS.some(function (origin) {
+        return m.text.indexOf(origin) !== -1;
+      });
+      if (isAllowedOrigin) {
         return;
       }
       violations.push(
@@ -484,15 +506,25 @@ function validateManifestObject(manifest) {
     }
   }
 
-  // host_permissions must be absent or empty
+  // host_permissions must only contain allowed origins
+  var ALLOWED_HOST_PERMISSIONS = ['https://weather-api167.p.rapidapi.com/*'];
   if (manifest.host_permissions && manifest.host_permissions.length > 0) {
-    violations.push(
-      createViolation(
-        'manifest.json',
-        null,
-        'host_permissions must be empty (found: ' + JSON.stringify(manifest.host_permissions) + ')'
-      )
-    );
+    var disallowedHosts = manifest.host_permissions.filter(function (h) {
+      return ALLOWED_HOST_PERMISSIONS.indexOf(h) === -1;
+    });
+    if (disallowedHosts.length > 0) {
+      violations.push(
+        createViolation(
+          'manifest.json',
+          null,
+          'disallowed host_permissions found (allowed: ' +
+            JSON.stringify(ALLOWED_HOST_PERMISSIONS) +
+            ', found: ' +
+            JSON.stringify(disallowedHosts) +
+            ')'
+        )
+      );
+    }
   }
 
   // content_security_policy.extension_pages must exist and be secure
@@ -616,6 +648,8 @@ if (typeof module !== 'undefined' && module.exports && require.main !== module) 
     scanLines,
     snippet,
     ROOT,
+    NETWORK_API_ALLOWED_FILES,
+    ALLOWED_REMOTE_ORIGINS,
   };
 } else {
   process.exit(main());

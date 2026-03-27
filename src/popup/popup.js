@@ -246,6 +246,10 @@ if (typeof document !== 'undefined') {
   var _renderErrorLogged = false;
   var _settings = sanitizeSettings({});
 
+  /* Weather panel element groups */
+  var _primaryWeatherEls = null;
+  var _secondaryWeatherEls = null;
+
   /**
    * Update a single clock's time and date <time> elements.
    * timeZone is an IANA identifier or "system" (resolved internally).
@@ -270,6 +274,129 @@ if (typeof document !== 'undefined') {
       if (dateEl.getAttribute('datetime') !== dateDt) {
         dateEl.setAttribute('datetime', dateDt);
       }
+    }
+  };
+
+  /**
+   * Query all weather panel DOM elements for a given clock prefix.
+   * @param {string} prefix - "primary" or "secondary"
+   * @returns {{content: Element, icon: Element, city: Element, condition: Element, temp: Element, status: Element, updated: Element}}
+   */
+  var _queryWeatherEls = function _queryWeatherEls(prefix) {
+    return {
+      content: document.getElementById(prefix + 'WeatherContent'),
+      icon: document.getElementById(prefix + 'WeatherIcon'),
+      city: document.getElementById(prefix + 'WeatherCity'),
+      condition: document.getElementById(prefix + 'WeatherCondition'),
+      temp: document.getElementById(prefix + 'WeatherTemp'),
+      status: document.getElementById(prefix + 'WeatherStatus'),
+      updated: document.getElementById(prefix + 'WeatherUpdated'),
+    };
+  };
+
+  /**
+   * Format a timestamp as a compact "Updated HH:MM" string.
+   * @param {number} fetchedAt - Epoch milliseconds
+   * @returns {string}
+   */
+  var _formatUpdatedTime = function _formatUpdatedTime(fetchedAt) {
+    var d = new Date(fetchedAt);
+    var h = String(d.getHours()).padStart(2, '0');
+    var m = String(d.getMinutes()).padStart(2, '0');
+    return 'Updated ' + h + ':' + m;
+  };
+
+  /**
+   * Update a single clock's weather panel DOM elements.
+   * Shows weather data when available, "Weather unavailable" otherwise.
+   *
+   * @param {object|null} els - Weather element group from _queryWeatherEls
+   * @param {{data: object, fetchedAt: number}|null} result - Cache entry from Weather.getWeather
+   */
+  var _renderWeatherPanel = function _renderWeatherPanel(els, result) {
+    if (!els || !els.content) {
+      return;
+    }
+
+    if (!result || !result.data) {
+      /* Error / unavailable state */
+      els.content.hidden = true;
+      if (els.status) {
+        els.status.hidden = false;
+        els.status.textContent = 'Weather unavailable';
+      }
+      if (els.updated) {
+        els.updated.textContent = '';
+      }
+      return;
+    }
+
+    var data = result.data;
+
+    /* Populate weather details */
+    if (els.city) {
+      els.city.textContent = data.city || '';
+    }
+    if (els.condition) {
+      els.condition.textContent = data.condition || '';
+    }
+    if (els.temp) {
+      els.temp.textContent = data.temp !== null ? data.temp + '°C' : '';
+    }
+    if (els.icon) {
+      if (data.icon) {
+        els.icon.src = data.icon;
+        els.icon.alt = data.condition || 'Weather icon';
+      } else {
+        els.icon.src = '';
+        els.icon.alt = '';
+      }
+    }
+
+    /* Show content, hide status */
+    els.content.hidden = false;
+    if (els.status) {
+      els.status.hidden = true;
+    }
+    if (els.updated) {
+      els.updated.textContent = _formatUpdatedTime(result.fetchedAt);
+    }
+  };
+
+  /**
+   * Fetch and render weather for all visible clocks.
+   * Each clock's fetch is independent — one failure does not affect others.
+   * No-op if the Weather module is not loaded (e.g. in tests).
+   *
+   * @param {boolean} [forceRefresh] - True for manual refresh (15s debounce)
+   */
+  var _refreshWeather = function _refreshWeather(forceRefresh) {
+    if (typeof Weather === 'undefined') {
+      return;
+    }
+
+    /* Primary clock weather — always fetched */
+    var primaryLoc = Weather.getWeatherLocation(_settings.primaryTimeZone);
+    Weather.getWeather(primaryLoc.lat, primaryLoc.lon, forceRefresh)
+      .then(function (result) {
+        _renderWeatherPanel(_primaryWeatherEls, result);
+      })
+      .catch(function (err) {
+        console.error('Popup: primary weather error', err && err.message ? err.message : '');
+        _renderWeatherPanel(_primaryWeatherEls, null);
+      });
+
+    /* Secondary clock weather — only when dual-clock is enabled */
+    if (_settings.dualClockEnabled) {
+      var secondaryLoc = Weather.getWeatherLocation(_settings.secondaryTimeZone);
+      Weather.getWeather(secondaryLoc.lat, secondaryLoc.lon, forceRefresh)
+        .then(function (result) {
+          _renderWeatherPanel(_secondaryWeatherEls, result);
+        })
+        .catch(function (err) {
+          console.error('Popup: secondary weather error', err && err.message ? err.message : '');
+          _renderWeatherPanel(_secondaryWeatherEls, null);
+        });
     }
   };
 
@@ -408,12 +535,17 @@ if (typeof document !== 'undefined') {
       _warnedMissing = true;
     }
 
+    /* Query weather panel elements */
+    _primaryWeatherEls = _queryWeatherEls('primary');
+    _secondaryWeatherEls = _queryWeatherEls('secondary');
+
     /* Render immediately with defaults, then async-load persisted settings */
     safeRender();
     startTicker();
 
     loadSettings().then(function (settings) {
       _applySettings(settings);
+      _refreshWeather(false);
     });
 
     /* --- Lifecycle listeners --- */
@@ -429,6 +561,7 @@ if (typeof document !== 'undefined') {
         } else {
           safeRender();
           startTicker();
+          _refreshWeather(false);
         }
       } catch (err) {
         console.error('Popup: visibilitychange error', err);
@@ -441,7 +574,8 @@ if (typeof document !== 'undefined') {
       _refreshBtn.addEventListener('click', function () {
         try {
           safeRender();
-          _announceStatus('Time and date updated');
+          _refreshWeather(true);
+          _announceStatus('Time, date, and weather updated');
         } catch (err) {
           console.error('Popup: refresh error', err);
         }
@@ -456,6 +590,9 @@ if (typeof document !== 'undefined') {
         }
         saveSettings(_settings);
         safeRender();
+        if (_settings.dualClockEnabled) {
+          _refreshWeather(false);
+        }
         _announceStatus(
           _settings.dualClockEnabled ? 'Second clock enabled' : 'Second clock disabled'
         );
@@ -467,6 +604,7 @@ if (typeof document !== 'undefined') {
         _settings.primaryTimeZone = _primaryTzSelectEl.value;
         saveSettings(_settings);
         safeRender();
+        _refreshWeather(true);
         _announceStatus('Primary time zone changed');
       });
     }
@@ -476,6 +614,9 @@ if (typeof document !== 'undefined') {
         _settings.secondaryTimeZone = _secondaryTzSelectEl.value;
         saveSettings(_settings);
         safeRender();
+        if (_settings.dualClockEnabled) {
+          _refreshWeather(true);
+        }
         _announceStatus('Secondary time zone changed');
       });
     }
