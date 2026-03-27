@@ -379,31 +379,9 @@ if (typeof document !== 'undefined') {
   };
 
   /**
-   * Show a non-blocking status message in a weather panel.
-   * Used for "API key required" or "Weather unavailable" states.
-   *
-   * @param {object|null} els - Weather element group from _queryWeatherEls
-   * @param {string} message - Status text to display
-   */
-  var _showWeatherStatus = function _showWeatherStatus(els, message) {
-    if (!els || !els.content) {
-      return;
-    }
-    els.content.hidden = true;
-    if (els.status) {
-      els.status.hidden = false;
-      els.status.textContent = message;
-    }
-    if (els.updated) {
-      els.updated.textContent = '';
-    }
-  };
-
-  /**
    * Fetch and render weather for all visible clocks.
    * Each clock's fetch is independent — one failure does not affect others.
    * No-op if the Weather module is not loaded (e.g. in tests).
-   * Shows "API key required" when no key is configured.
    *
    * @param {boolean} [forceRefresh] - True for manual refresh (15s debounce)
    */
@@ -412,39 +390,29 @@ if (typeof document !== 'undefined') {
       return;
     }
 
-    Weather.getApiKey().then(function (apiKey) {
-      if (!apiKey) {
-        _showWeatherStatus(_primaryWeatherEls, 'API key required');
-        if (_settings.dualClockEnabled) {
-          _showWeatherStatus(_secondaryWeatherEls, 'API key required');
-        }
-        return;
-      }
+    /* Primary clock weather — always fetched */
+    var primaryLoc = Weather.getWeatherLocation(_settings.primaryTimeZone);
+    Weather.getWeather(primaryLoc.lat, primaryLoc.lon, forceRefresh)
+      .then(function (result) {
+        _renderWeatherPanel(_primaryWeatherEls, result);
+      })
+      .catch(function (err) {
+        console.error('Popup: primary weather error', err && err.message ? err.message : '');
+        _renderWeatherPanel(_primaryWeatherEls, null);
+      });
 
-      /* Primary clock weather — always fetched */
-      var primaryLoc = Weather.getWeatherLocation(_settings.primaryTimeZone);
-      Weather.getWeather(primaryLoc.lat, primaryLoc.lon, forceRefresh)
+    /* Secondary clock weather — only when dual-clock is enabled */
+    if (_settings.dualClockEnabled) {
+      var secondaryLoc = Weather.getWeatherLocation(_settings.secondaryTimeZone);
+      Weather.getWeather(secondaryLoc.lat, secondaryLoc.lon, forceRefresh)
         .then(function (result) {
-          _renderWeatherPanel(_primaryWeatherEls, result);
+          _renderWeatherPanel(_secondaryWeatherEls, result);
         })
         .catch(function (err) {
-          console.error('Popup: primary weather error', err && err.message ? err.message : '');
-          _renderWeatherPanel(_primaryWeatherEls, null);
+          console.error('Popup: secondary weather error', err && err.message ? err.message : '');
+          _renderWeatherPanel(_secondaryWeatherEls, null);
         });
-
-      /* Secondary clock weather — only when dual-clock is enabled */
-      if (_settings.dualClockEnabled) {
-        var secondaryLoc = Weather.getWeatherLocation(_settings.secondaryTimeZone);
-        Weather.getWeather(secondaryLoc.lat, secondaryLoc.lon, forceRefresh)
-          .then(function (result) {
-            _renderWeatherPanel(_secondaryWeatherEls, result);
-          })
-          .catch(function (err) {
-            console.error('Popup: secondary weather error', err && err.message ? err.message : '');
-            _renderWeatherPanel(_secondaryWeatherEls, null);
-          });
-      }
-    });
+    }
   };
 
   /**
@@ -625,38 +593,6 @@ if (typeof document !== 'undefined') {
     /* Query weather panel elements */
     _primaryWeatherEls = _queryWeatherEls('primary');
     _secondaryWeatherEls = _queryWeatherEls('secondary');
-
-    /* API key input elements */
-    var apiKeyInput = document.getElementById('weatherApiKeyInput');
-    var apiKeySaveBtn = document.getElementById('weatherApiKeySaveBtn');
-
-    /* Pre-fill API key input with masked indicator if a key exists */
-    if (apiKeyInput && typeof Weather !== 'undefined') {
-      Weather.getApiKey().then(function (key) {
-        if (key) {
-          apiKeyInput.placeholder = 'Key saved — enter new key to replace';
-        }
-      });
-    }
-
-    /* Save button: persist key, clear cache, re-fetch weather */
-    if (apiKeySaveBtn && apiKeyInput) {
-      apiKeySaveBtn.addEventListener('click', function () {
-        var key = apiKeyInput.value.trim();
-        if (!key) {
-          return;
-        }
-        if (typeof Weather !== 'undefined') {
-          Weather.setApiKey(key).then(function () {
-            apiKeyInput.value = '';
-            apiKeyInput.placeholder = 'Key saved — enter new key to replace';
-            Weather.clearWeatherCache();
-            _refreshWeather(true);
-            _announceStatus('Weather API key saved');
-          });
-        }
-      });
-    }
 
     /* Render immediately with defaults, then async-load persisted settings */
     safeRender();

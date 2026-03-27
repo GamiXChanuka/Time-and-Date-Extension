@@ -4,8 +4,8 @@
  * Fetches current weather from WeatherAPI.com and exposes a cached,
  * rate-limited interface for the popup to consume.
  *
- * The API key is user-provided and stored in chrome.storage.local —
- * no key is shipped in the repository.
+ * The API key is bundled with the extension (treated as non-secret per
+ * story requirements). No user configuration is needed.
  *
  * Exposes functions on `self.Weather` for browser use and via
  * `module.exports` for Node-based test runners.
@@ -15,8 +15,8 @@
 
 var WEATHER_API_URL = 'https://api.weatherapi.com/v1/current.json';
 
-/** chrome.storage.local key where the user's WeatherAPI key is stored. */
-var WEATHER_API_KEY_STORAGE_KEY = 'weatherApiKey';
+/** Bundled WeatherAPI.com key — treated as non-secret per story. */
+var WEATHER_API_KEY = '8b44741d1fd1405abd6103821262703';
 
 /* --- Timezone → location mapping --- */
 
@@ -50,53 +50,6 @@ var WEATHER_LOCATIONS = {
  */
 function getWeatherLocation(timeZone) {
   return WEATHER_LOCATIONS[timeZone] || WEATHER_LOCATIONS.system;
-}
-
-/* --- API key management --- */
-
-/**
- * Read the WeatherAPI.com key from chrome.storage.local.
- * Returns an empty string when storage is unavailable or no key is set.
- *
- * @returns {Promise<string>}
- */
-function getApiKey() {
-  if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
-    return Promise.resolve('');
-  }
-  return new Promise(function (resolve) {
-    chrome.storage.local.get(WEATHER_API_KEY_STORAGE_KEY, function (result) {
-      if (chrome.runtime && chrome.runtime.lastError) {
-        console.error('Weather: failed to read API key —', chrome.runtime.lastError.message);
-        resolve('');
-        return;
-      }
-      resolve(result[WEATHER_API_KEY_STORAGE_KEY] || '');
-    });
-  });
-}
-
-/**
- * Save a WeatherAPI.com key to chrome.storage.local.
- * No-op when storage is unavailable.
- *
- * @param {string} key - The API key to store
- * @returns {Promise<void>}
- */
-function setApiKey(key) {
-  if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
-    return Promise.resolve();
-  }
-  var payload = {};
-  payload[WEATHER_API_KEY_STORAGE_KEY] = key;
-  return new Promise(function (resolve) {
-    chrome.storage.local.set(payload, function () {
-      if (chrome.runtime && chrome.runtime.lastError) {
-        console.error('Weather: failed to save API key —', chrome.runtime.lastError.message);
-      }
-      resolve();
-    });
-  });
 }
 
 /* --- Temperature unit detection --- */
@@ -225,7 +178,7 @@ function parseWeatherResponse(data) {
 /**
  * Fetch current weather for a given latitude and longitude.
  *
- * Uses WeatherAPI.com current.json with the user-provided API key.
+ * Uses WeatherAPI.com current.json with the bundled API key.
  * Returns a parsed WeatherDTO on success, or null on any failure.
  *
  * @param {number} lat - Latitude
@@ -233,45 +186,35 @@ function parseWeatherResponse(data) {
  * @returns {Promise<{city: string, condition: string, icon: string, temp: number, tempUnit: string}|null>}
  */
 function fetchWeather(lat, lon) {
-  return getApiKey().then(function (apiKey) {
-    if (!apiKey) {
-      console.warn('Weather: no API key configured');
-      return null;
-    }
+  var url =
+    WEATHER_API_URL +
+    '?key=' +
+    encodeURIComponent(WEATHER_API_KEY) +
+    '&q=' +
+    encodeURIComponent(lat + ',' + lon);
 
-    var url =
-      WEATHER_API_URL +
-      '?key=' +
-      encodeURIComponent(apiKey) +
-      '&q=' +
-      encodeURIComponent(lat + ',' + lon);
-
-    return fetch(url, { method: 'GET' })
-      .then(function (response) {
-        if (!response.ok) {
-          console.error('Weather: API returned status ' + response.status);
-          return null;
-        }
-        return response.json();
-      })
-      .then(function (data) {
-        if (data === null) {
-          return null;
-        }
-        var dto = parseWeatherResponse(data);
-        if (!dto) {
-          console.error('Weather: unexpected response structure');
-        }
-        return dto;
-      })
-      .catch(function (err) {
-        console.error(
-          'Weather: fetch failed —',
-          err && err.message ? err.message : 'unknown error'
-        );
+  return fetch(url, { method: 'GET' })
+    .then(function (response) {
+      if (!response.ok) {
+        console.error('Weather: API returned status ' + response.status);
         return null;
-      });
-  });
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      if (data === null) {
+        return null;
+      }
+      var dto = parseWeatherResponse(data);
+      if (!dto) {
+        console.error('Weather: unexpected response structure');
+      }
+      return dto;
+    })
+    .catch(function (err) {
+      console.error('Weather: fetch failed —', err && err.message ? err.message : 'unknown error');
+      return null;
+    });
 }
 
 /* --- In-session caching and rate limiting --- */
@@ -398,13 +341,11 @@ function getConditionCategory(conditionText) {
 
 var _weatherExports = {
   WEATHER_API_URL: WEATHER_API_URL,
-  WEATHER_API_KEY_STORAGE_KEY: WEATHER_API_KEY_STORAGE_KEY,
+  WEATHER_API_KEY: WEATHER_API_KEY,
   WEATHER_LOCATIONS: WEATHER_LOCATIONS,
   AUTO_REFRESH_INTERVAL_MS: AUTO_REFRESH_INTERVAL_MS,
   MANUAL_REFRESH_DEBOUNCE_MS: MANUAL_REFRESH_DEBOUNCE_MS,
   getWeatherLocation: getWeatherLocation,
-  getApiKey: getApiKey,
-  setApiKey: setApiKey,
   usesFahrenheit: usesFahrenheit,
   normalizeIconUrl: normalizeIconUrl,
   parseWeatherResponse: parseWeatherResponse,
