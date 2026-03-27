@@ -146,7 +146,7 @@ All popup and alarm styles reference these tokens — no hard-coded color/spacin
 
 ## Weather Feature (popup)
 
-The popup displays per-clock weather using WeatherAPI.com (`GET /v1/current.json`). The API key is **user-provided** and stored in `chrome.storage.local` under the key `weatherApiKey` — no key is shipped in the repository. When no key is configured, the weather section shows an "API key required" state without breaking time/date display.
+The popup displays per-clock weather using WeatherAPI.com (`GET /v1/current.json`). The API key is **hardcoded** in `weather.js` as `WEATHER_API_KEY` (treated as non-secret per story requirements). Weather works with zero user configuration — there is no API key input UI.
 
 Configuration:
 
@@ -156,7 +156,7 @@ Configuration:
 
 Key weather.js exports:
 
-- `getApiKey()` / `setApiKey(key)` — read/write the user's API key from chrome.storage.local
+- `WEATHER_API_KEY` — bundled API key constant
 - `usesFahrenheit()` — locale-based temperature unit detection (Fahrenheit for en-US/en-LR/en-MM)
 - `normalizeIconUrl(url)` — prepends `https:` to protocol-relative icon URLs
 - `parseWeatherResponse(data)` — maps WeatherAPI.com response to `{city, condition, icon, temp, tempUnit}`
