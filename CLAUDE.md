@@ -161,6 +161,7 @@ Key weather.js exports:
 - `normalizeIconUrl(url)` — prepends `https:` to protocol-relative icon URLs
 - `parseWeatherResponse(data)` — maps WeatherAPI.com response to `{city, condition, icon, temp, tempUnit}`
 - `getWeatherLocation(tz)` / `getWeather(lat, lon, force)` / `clearWeatherCache()` — location mapping and cached fetch
+- `getConditionCategory(conditionText)` — maps WeatherAPI.com condition text to animation category (clear/clouds/rain/thunder/snow/mist)
 
 ## Code Guidelines
 
