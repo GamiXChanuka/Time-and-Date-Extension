@@ -1,15 +1,17 @@
-/* --- Alarm view: form section --- */
+/* --- Alarm view: form section (card style) --- */
 
 #alarmFormSection {
-  border: 1px solid var(--color-border);
+  background-color: var(--color-surface);
+  border: none;
   border-radius: var(--radius);
-  padding: var(--space-3);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
 }
 
 #alarmForm {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
+  gap: var(--space-3);
 }
 
 .form-row {
@@ -21,7 +23,7 @@
 .form-label {
   font-size: var(--font-size-btn);
   font-weight: var(--font-weight-btn);
-  color: var(--color-text);
+  color: var(--color-muted);
 }
 
 /* --- Inputs --- */
@@ -30,17 +32,19 @@ input[type='time'],
 input[type='text'] {
   font-family: var(--font-family);
   font-size: var(--font-size-btn);
-  padding: var(--space-1) var(--space-2);
+  padding: var(--space-2) var(--space-3);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background-color: var(--color-bg);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
   color: var(--color-text);
+  transition: border-color 0.15s;
 }
 
 input[type='time']:focus-visible,
 input[type='text']:focus-visible {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
+  border-color: var(--color-focus);
 }
 
 /* --- Day picker --- */
@@ -59,7 +63,7 @@ input[type='text']:focus-visible {
 .day-picker {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--space-1);
+  gap: var(--space-2);
 }
 
 .day-chip {
@@ -81,13 +85,14 @@ input[type='text']:focus-visible {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 2.25rem;
+  min-width: 2.5rem;
+  height: 2.5rem;
   padding: var(--space-1);
   font-size: var(--font-size-small);
   font-weight: var(--font-weight-btn);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background-color: var(--color-bg);
+  border-radius: var(--radius-full);
+  background-color: var(--color-surface);
   color: var(--color-text);
   transition:
     background-color 0.15s,
@@ -99,7 +104,7 @@ input[type='text']:focus-visible {
 .day-chip input[type='checkbox']:checked + span {
   background-color: var(--color-btn-bg);
   border-color: var(--color-btn-bg);
-  color: var(--color-bg);
+  color: var(--color-surface);
 }
 
 .day-chip input[type='checkbox']:focus-visible + span {
@@ -120,8 +125,8 @@ input[type='text']:focus-visible {
 }
 
 .alarm-toggle-form input[type='checkbox'] {
-  width: 1rem;
-  height: 1rem;
+  width: 1.125rem;
+  height: 1.125rem;
   margin: 0;
   cursor: pointer;
   accent-color: var(--color-btn-bg);
@@ -148,17 +153,19 @@ input[type='text']:focus-visible {
 
 .form-actions {
   display: flex;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  padding-top: var(--space-1);
 }
 
 .btn {
   font-family: var(--font-family);
   font-size: var(--font-size-btn);
   font-weight: var(--font-weight-btn);
-  padding: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-4);
   border: 1px solid transparent;
-  border-radius: var(--radius);
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  transition: background-color 0.15s;
 }
 
 .btn:focus-visible {
@@ -167,8 +174,9 @@ input[type='text']:focus-visible {
 }
 
 .btn-primary {
-  color: var(--color-bg);
+  color: var(--color-surface);
   background-color: var(--color-btn-bg);
+  box-shadow: var(--shadow-btn);
 }
 
 .btn-primary:hover {
@@ -181,16 +189,16 @@ input[type='text']:focus-visible {
 
 .btn-secondary {
   color: var(--color-text);
-  background-color: var(--color-bg);
+  background-color: var(--color-surface);
   border-color: var(--color-border);
 }
 
 .btn-secondary:hover {
-  background-color: #f3f4f6;
+  background-color: var(--color-hover-bg);
 }
 
 .btn-secondary:active {
-  background-color: #e5e7eb;
+  background-color: var(--color-active-bg);
 }
 
 /* --- Alarm list --- */
@@ -198,21 +206,24 @@ input[type='text']:focus-visible {
 #alarmListSection {
   display: flex;
   flex-direction: column;
-  margin-top: var(--space-2);
+  margin-top: var(--space-3);
 }
 
 .alarm-card {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-2);
-  border: 1px solid var(--color-border);
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--color-surface);
+  border: none;
   border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
   margin-bottom: var(--space-2);
+  transition: box-shadow 0.15s;
 }
 
 .alarm-card[data-disabled='true'] {
-  opacity: 0.55;
+  opacity: 0.5;
 }
 
 .alarm-info {
@@ -221,10 +232,12 @@ input[type='text']:focus-visible {
 }
 
 .alarm-time {
-  font-size: var(--font-size-date);
+  font-size: 1.5rem;
   font-weight: var(--font-weight-time);
   line-height: var(--line-height-time);
+  color: var(--color-text);
   font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
 }
 
 .alarm-label {
@@ -246,23 +259,24 @@ input[type='text']:focus-visible {
 .alarm-actions {
   display: flex;
   align-items: center;
-  gap: var(--space-1);
+  gap: var(--space-2);
   flex-shrink: 0;
 }
 
 .alarm-actions .btn-icon {
   font-family: var(--font-family);
-  font-size: var(--font-size-small);
-  padding: var(--space-1);
+  font-size: var(--font-size-btn);
+  padding: var(--space-2);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  background-color: var(--color-bg);
+  border-radius: var(--radius-sm);
+  background-color: var(--color-surface);
   color: var(--color-text);
   cursor: pointer;
+  transition: background-color 0.15s;
 }
 
 .alarm-actions .btn-icon:hover {
-  background-color: #f3f4f6;
+  background-color: var(--color-hover-bg);
 }
 
 .alarm-actions .btn-icon:focus-visible {
@@ -271,7 +285,7 @@ input[type='text']:focus-visible {
 }
 
 .alarm-actions .btn-icon:active {
-  background-color: #e5e7eb;
+  background-color: var(--color-active-bg);
 }
 
 .alarm-actions .btn-danger {
@@ -281,12 +295,12 @@ input[type='text']:focus-visible {
 
 .alarm-actions .btn-danger:hover {
   background-color: var(--color-danger);
-  color: var(--color-bg);
+  color: var(--color-surface);
 }
 
 .alarm-actions .btn-danger:active {
   background-color: var(--color-danger-hover);
-  color: var(--color-bg);
+  color: var(--color-surface);
 }
 
 /* --- Enable toggle in alarm card --- */
@@ -298,8 +312,8 @@ input[type='text']:focus-visible {
 }
 
 .alarm-toggle-label input[type='checkbox'] {
-  width: 1rem;
-  height: 1rem;
+  width: 1.125rem;
+  height: 1.125rem;
   margin: 0;
   cursor: pointer;
   accent-color: var(--color-btn-bg);
@@ -316,18 +330,18 @@ input[type='text']:focus-visible {
   font-size: var(--font-size-btn);
   color: var(--color-muted);
   text-align: center;
-  padding: var(--space-3) 0;
+  padding: var(--space-5) 0;
   margin: 0;
 }
 
 /* --- Alarm view heading --- */
 
 .alarm-view-heading {
-  font-size: var(--font-size-btn);
+  font-size: var(--font-size-small);
   font-weight: var(--font-weight-time);
   line-height: var(--line-height-date);
   margin: 0 0 var(--space-2);
   color: var(--color-muted);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }

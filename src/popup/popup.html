@@ -64,6 +64,7 @@
               <time id="dateValue" datetime="2000-01-01">--/--/----</time>
             </div>
             <div class="weather-panel" id="primaryWeather" aria-label="Weather for primary clock">
+              <span class="weather-anim" aria-hidden="true"></span>
               <div class="weather-content" id="primaryWeatherContent" hidden>
                 <img
                   class="weather-icon"
@@ -112,6 +113,7 @@
               id="secondaryWeather"
               aria-label="Weather for secondary clock"
             >
+              <span class="weather-anim" aria-hidden="true"></span>
               <div class="weather-content" id="secondaryWeatherContent" hidden>
                 <img
                   class="weather-icon"
@@ -138,21 +140,6 @@
             <input type="checkbox" id="dualClockToggle" />
             <span>Second clock</span>
           </label>
-        </div>
-
-        <div class="settings api-key-settings">
-          <label for="weatherApiKeyInput" class="api-key-label">Weather API key</label>
-          <div class="api-key-row">
-            <input
-              type="password"
-              id="weatherApiKeyInput"
-              class="api-key-input"
-              placeholder="Enter WeatherAPI.com key"
-              autocomplete="off"
-              spellcheck="false"
-            />
-            <button type="button" id="weatherApiKeySaveBtn" class="btn btn-small">Save</button>
-          </div>
         </div>
       </div>
 
@@ -237,7 +224,7 @@
 
         <section id="alarmListSection" aria-label="Your alarms">
           <h2 class="alarm-view-heading">Alarms</h2>
-          <div id="alarmList"></div>
+          <div id="alarmList" role="list"></div>
           <p id="alarmEmptyState" class="empty-state">No alarms yet. Create one above.</p>
         </section>
       </div>

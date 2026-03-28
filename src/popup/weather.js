@@ -4,8 +4,8 @@
  * Fetches current weather from WeatherAPI.com and exposes a cached,
  * rate-limited interface for the popup to consume.
  *
- * The API key is user-provided and stored in chrome.storage.local —
- * no key is shipped in the repository.
+ * The API key is bundled with the extension (treated as non-secret per
+ * story requirements). No user configuration is needed.
  *
  * Exposes functions on `self.Weather` for browser use and via
  * `module.exports` for Node-based test runners.
@@ -15,18 +15,17 @@
 
 var WEATHER_API_URL = 'https://api.weatherapi.com/v1/current.json';
 
-/** chrome.storage.local key where the user's WeatherAPI key is stored. */
-var WEATHER_API_KEY_STORAGE_KEY = 'weatherApiKey';
+/** Bundled WeatherAPI.com key — treated as non-secret per story. */
+var WEATHER_API_KEY = '8b44741d1fd1405abd6103821262703';
 
 /* --- Timezone → location mapping --- */
 
 /**
  * Static mapping from IANA timezone identifiers to geographic coordinates.
  * Covers every timezone in TIMEZONE_OPTIONS (popup.js).
- * The "system" sentinel maps to Colombo per story requirements.
+ * For the "system" sentinel and unknown timezones, see getDefaultLocation().
  */
 var WEATHER_LOCATIONS = {
-  system: { lat: 6.9271, lon: 79.8612, city: 'Colombo' },
   UTC: { lat: 51.5074, lon: -0.1278, city: 'London' },
   'America/New_York': { lat: 40.7128, lon: -74.006, city: 'New York' },
   'America/Chicago': { lat: 41.8781, lon: -87.6298, city: 'Chicago' },
@@ -40,63 +39,102 @@ var WEATHER_LOCATIONS = {
   'Australia/Sydney': { lat: -33.8688, lon: 151.2093, city: 'Sydney' },
 };
 
+/* --- Locale-derived default location --- */
+
+/**
+ * Curated mapping from ISO 3166-1 alpha-2 country codes to default
+ * weather locations. Used when the clock is set to "system" timezone.
+ */
+var LOCALE_LOCATIONS = {
+  GB: { lat: 51.5074, lon: -0.1278, city: 'London' },
+  LK: { lat: 6.9271, lon: 79.8612, city: 'Colombo' },
+  US: { lat: 40.7128, lon: -74.006, city: 'New York' },
+  AU: { lat: -33.8688, lon: 151.2093, city: 'Sydney' },
+  DE: { lat: 52.52, lon: 13.405, city: 'Berlin' },
+  JP: { lat: 35.6762, lon: 139.6503, city: 'Tokyo' },
+  AE: { lat: 25.2048, lon: 55.2708, city: 'Dubai' },
+  FR: { lat: 48.8566, lon: 2.3522, city: 'Paris' },
+  IN: { lat: 19.076, lon: 72.8777, city: 'Mumbai' },
+  CA: { lat: 43.6532, lon: -79.3832, city: 'Toronto' },
+};
+
+/** Global fallback when locale region is unknown or undetectable. */
+var DEFAULT_LOCATION = LOCALE_LOCATIONS.US;
+
+/**
+ * Extract the region (country code) from the user's locale.
+ *
+ * Tries Intl.DateTimeFormat().resolvedOptions().locale first, then
+ * navigator.language. Parses the region subtag (e.g. "en-GB" → "GB").
+ *
+ * @returns {string|null} ISO 3166-1 alpha-2 code, or null if undetectable
+ */
+function getLocaleRegion() {
+  var locale = '';
+
+  /* Prefer Intl — most reliable, resolves OS-level locale */
+  try {
+    if (typeof Intl !== 'undefined' && Intl.DateTimeFormat) {
+      var resolved = Intl.DateTimeFormat().resolvedOptions();
+      if (resolved && resolved.locale) {
+        locale = resolved.locale;
+      }
+    }
+  } catch (_e) {
+    /* Intl unavailable — fall through */
+  }
+
+  /* Fallback to navigator.language */
+  if (!locale && typeof navigator !== 'undefined' && navigator.language) {
+    locale = navigator.language;
+  }
+
+  if (!locale) {
+    return null;
+  }
+
+  /* Parse region subtag: "en-GB" → "GB", "si-LK" → "LK", "en-US-x-custom" → "US" */
+  var parts = locale.split('-');
+  for (var i = 1; i < parts.length; i++) {
+    var part = parts[i].toUpperCase();
+    if (part.length === 2 && part >= 'AA' && part <= 'ZZ') {
+      return part;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Get the default weather location based on the user's locale region.
+ * Falls back to New York (US) when the region is unknown or not in
+ * the curated map.
+ *
+ * @returns {{lat: number, lon: number, city: string}}
+ */
+function getDefaultLocation() {
+  var region = getLocaleRegion();
+  if (region && LOCALE_LOCATIONS[region]) {
+    return LOCALE_LOCATIONS[region];
+  }
+  return DEFAULT_LOCATION;
+}
+
 /**
  * Resolve a timezone identifier to a weather location.
- * Returns {lat, lon, city} from the static mapping.
- * Falls back to Colombo for unknown timezones.
+ *
+ * For specific IANA timezones (e.g. "Europe/London"), returns the
+ * matching entry from WEATHER_LOCATIONS. For the "system" sentinel
+ * or unknown timezones, derives a default from the user's locale.
  *
  * @param {string} timeZone - IANA timezone or "system"
  * @returns {{lat: number, lon: number, city: string}}
  */
 function getWeatherLocation(timeZone) {
-  return WEATHER_LOCATIONS[timeZone] || WEATHER_LOCATIONS.system;
-}
-
-/* --- API key management --- */
-
-/**
- * Read the WeatherAPI.com key from chrome.storage.local.
- * Returns an empty string when storage is unavailable or no key is set.
- *
- * @returns {Promise<string>}
- */
-function getApiKey() {
-  if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
-    return Promise.resolve('');
+  if (timeZone && timeZone !== 'system' && WEATHER_LOCATIONS[timeZone]) {
+    return WEATHER_LOCATIONS[timeZone];
   }
-  return new Promise(function (resolve) {
-    chrome.storage.local.get(WEATHER_API_KEY_STORAGE_KEY, function (result) {
-      if (chrome.runtime && chrome.runtime.lastError) {
-        console.error('Weather: failed to read API key —', chrome.runtime.lastError.message);
-        resolve('');
-        return;
-      }
-      resolve(result[WEATHER_API_KEY_STORAGE_KEY] || '');
-    });
-  });
-}
-
-/**
- * Save a WeatherAPI.com key to chrome.storage.local.
- * No-op when storage is unavailable.
- *
- * @param {string} key - The API key to store
- * @returns {Promise<void>}
- */
-function setApiKey(key) {
-  if (typeof chrome === 'undefined' || !chrome.storage || !chrome.storage.local) {
-    return Promise.resolve();
-  }
-  var payload = {};
-  payload[WEATHER_API_KEY_STORAGE_KEY] = key;
-  return new Promise(function (resolve) {
-    chrome.storage.local.set(payload, function () {
-      if (chrome.runtime && chrome.runtime.lastError) {
-        console.error('Weather: failed to save API key —', chrome.runtime.lastError.message);
-      }
-      resolve();
-    });
-  });
+  return getDefaultLocation();
 }
 
 /* --- Temperature unit detection --- */
@@ -225,7 +263,7 @@ function parseWeatherResponse(data) {
 /**
  * Fetch current weather for a given latitude and longitude.
  *
- * Uses WeatherAPI.com current.json with the user-provided API key.
+ * Uses WeatherAPI.com current.json with the bundled API key.
  * Returns a parsed WeatherDTO on success, or null on any failure.
  *
  * @param {number} lat - Latitude
@@ -233,45 +271,35 @@ function parseWeatherResponse(data) {
  * @returns {Promise<{city: string, condition: string, icon: string, temp: number, tempUnit: string}|null>}
  */
 function fetchWeather(lat, lon) {
-  return getApiKey().then(function (apiKey) {
-    if (!apiKey) {
-      console.warn('Weather: no API key configured');
-      return null;
-    }
+  var url =
+    WEATHER_API_URL +
+    '?key=' +
+    encodeURIComponent(WEATHER_API_KEY) +
+    '&q=' +
+    encodeURIComponent(lat + ',' + lon);
 
-    var url =
-      WEATHER_API_URL +
-      '?key=' +
-      encodeURIComponent(apiKey) +
-      '&q=' +
-      encodeURIComponent(lat + ',' + lon);
-
-    return fetch(url, { method: 'GET' })
-      .then(function (response) {
-        if (!response.ok) {
-          console.error('Weather: API returned status ' + response.status);
-          return null;
-        }
-        return response.json();
-      })
-      .then(function (data) {
-        if (data === null) {
-          return null;
-        }
-        var dto = parseWeatherResponse(data);
-        if (!dto) {
-          console.error('Weather: unexpected response structure');
-        }
-        return dto;
-      })
-      .catch(function (err) {
-        console.error(
-          'Weather: fetch failed —',
-          err && err.message ? err.message : 'unknown error'
-        );
+  return fetch(url, { method: 'GET' })
+    .then(function (response) {
+      if (!response.ok) {
+        console.error('Weather: API returned status ' + response.status);
         return null;
-      });
-  });
+      }
+      return response.json();
+    })
+    .then(function (data) {
+      if (data === null) {
+        return null;
+      }
+      var dto = parseWeatherResponse(data);
+      if (!dto) {
+        console.error('Weather: unexpected response structure');
+      }
+      return dto;
+    })
+    .catch(function (err) {
+      console.error('Weather: fetch failed —', err && err.message ? err.message : 'unknown error');
+      return null;
+    });
 }
 
 /* --- In-session caching and rate limiting --- */
@@ -345,23 +373,75 @@ function clearWeatherCache() {
   _weatherCache = {};
 }
 
+/* --- Condition category mapping --- */
+
+/**
+ * Map a WeatherAPI.com condition text to a broad animation category.
+ *
+ * Categories: "clear", "clouds", "rain", "thunder", "snow", "mist".
+ * Uses keyword matching on the lowercased condition string.
+ * Falls back to "clear" for unrecognised conditions.
+ *
+ * @param {string} conditionText - The condition.text from WeatherAPI.com
+ * @returns {string} One of the six category identifiers
+ */
+function getConditionCategory(conditionText) {
+  if (typeof conditionText !== 'string' || conditionText.length === 0) {
+    return 'clear';
+  }
+  var text = conditionText.toLowerCase();
+
+  if (text.indexOf('thunder') !== -1) {
+    return 'thunder';
+  }
+  if (
+    text.indexOf('snow') !== -1 ||
+    text.indexOf('blizzard') !== -1 ||
+    text.indexOf('sleet') !== -1 ||
+    text.indexOf('ice pellet') !== -1
+  ) {
+    return 'snow';
+  }
+  if (
+    text.indexOf('rain') !== -1 ||
+    text.indexOf('drizzle') !== -1 ||
+    text.indexOf('shower') !== -1
+  ) {
+    return 'rain';
+  }
+  if (text.indexOf('mist') !== -1 || text.indexOf('fog') !== -1 || text.indexOf('haze') !== -1) {
+    return 'mist';
+  }
+  if (
+    text.indexOf('cloud') !== -1 ||
+    text.indexOf('overcast') !== -1 ||
+    text.indexOf('partly') !== -1
+  ) {
+    return 'clouds';
+  }
+  return 'clear';
+}
+
 /* --- Exports --- */
 
 var _weatherExports = {
   WEATHER_API_URL: WEATHER_API_URL,
-  WEATHER_API_KEY_STORAGE_KEY: WEATHER_API_KEY_STORAGE_KEY,
+  WEATHER_API_KEY: WEATHER_API_KEY,
   WEATHER_LOCATIONS: WEATHER_LOCATIONS,
+  LOCALE_LOCATIONS: LOCALE_LOCATIONS,
+  DEFAULT_LOCATION: DEFAULT_LOCATION,
   AUTO_REFRESH_INTERVAL_MS: AUTO_REFRESH_INTERVAL_MS,
   MANUAL_REFRESH_DEBOUNCE_MS: MANUAL_REFRESH_DEBOUNCE_MS,
+  getLocaleRegion: getLocaleRegion,
+  getDefaultLocation: getDefaultLocation,
   getWeatherLocation: getWeatherLocation,
-  getApiKey: getApiKey,
-  setApiKey: setApiKey,
   usesFahrenheit: usesFahrenheit,
   normalizeIconUrl: normalizeIconUrl,
   parseWeatherResponse: parseWeatherResponse,
   fetchWeather: fetchWeather,
   getWeather: getWeather,
   clearWeatherCache: clearWeatherCache,
+  getConditionCategory: getConditionCategory,
 };
 
 // Browser: expose on self for popup.js to consume

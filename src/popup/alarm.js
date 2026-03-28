@@ -317,6 +317,7 @@
   function _createAlarmCard(alarm) {
     var card = document.createElement('div');
     card.className = 'alarm-card';
+    card.setAttribute('role', 'listitem');
     card.setAttribute('data-alarm-id', alarm.id);
     card.setAttribute('data-disabled', alarm.enabled ? 'false' : 'true');
 
