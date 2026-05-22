@@ -364,6 +364,9 @@
     );
     toggleInput.addEventListener('change', _createToggleHandler(alarm.id));
     toggleLabel.appendChild(toggleInput);
+    var toggleSlider = document.createElement('span');
+    toggleSlider.className = 'ios-toggle-slider';
+    toggleLabel.appendChild(toggleSlider);
     actions.appendChild(toggleLabel);
 
     // Edit button

@@ -30,7 +30,7 @@
   --font-family:
     -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, 'Segoe UI',
     Roboto, sans-serif;
-  --font-size-time: 2.25rem;
+  --font-size-time: 2.5rem;
   --font-size-date: 1rem;
   --font-size-btn: 0.875rem;
   --font-size-small: 0.75rem;
@@ -59,7 +59,7 @@ body {
   padding: var(--space-3);
   background: var(--gradient-bg);
   color: var(--color-text);
-  min-width: 300px;
+  min-width: 340px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -203,6 +203,21 @@ main {
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-1) 0;
+}
+
+#primaryClock {
+  border-top: 3px solid var(--color-focus);
+}
+
+#secondaryClock {
+  border-top: 3px solid #5e5ce6;
+}
+
+@supports selector(:has(+ *)) {
+  .clocks:has(#secondaryClock:not([hidden])) #timeValue,
+  .clocks:has(#secondaryClock:not([hidden])) #secondaryTimeValue {
+    font-size: 2rem;
+  }
 }
 
 #timeValue,
@@ -464,32 +479,84 @@ main {
 .settings {
   display: flex;
   align-items: center;
-  padding: var(--space-3);
+  padding: var(--space-3) var(--space-4);
   margin-top: var(--space-3);
   background-color: var(--color-surface);
   border-radius: var(--radius);
   box-shadow: var(--shadow-card);
 }
 
-.toggle-label {
+.settings-row {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  justify-content: space-between;
+  width: 100%;
+  cursor: pointer;
+}
+
+.settings-row-label {
   font-size: var(--font-size-btn);
   font-weight: var(--font-weight-btn);
   color: var(--color-text);
-  cursor: pointer;
 }
 
-.toggle-label input[type='checkbox'] {
-  width: 1rem;
-  height: 1rem;
+/* --- iOS-style toggle switch --- */
+
+.ios-toggle-wrapper,
+.alarm-toggle-label {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
+  flex-shrink: 0;
+}
+
+.ios-toggle-wrapper input[type='checkbox'],
+.alarm-toggle-label input[type='checkbox'] {
+  opacity: 0;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   margin: 0;
   cursor: pointer;
-  accent-color: var(--color-btn-bg);
+  z-index: 1;
 }
 
-.toggle-label input[type='checkbox']:focus-visible {
+.ios-toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: var(--color-active-bg);
+  border-radius: var(--radius-full);
+  transition: background-color 0.25s ease;
+  pointer-events: none;
+}
+
+.ios-toggle-slider::before {
+  content: '';
+  position: absolute;
+  width: 27px;
+  height: 27px;
+  left: 2px;
+  top: 2px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  transition: transform 0.25s ease;
+}
+
+.ios-toggle-wrapper input:checked + .ios-toggle-slider,
+.alarm-toggle-label input:checked + .ios-toggle-slider {
+  background: var(--color-success);
+}
+
+.ios-toggle-wrapper input:checked + .ios-toggle-slider::before,
+.alarm-toggle-label input:checked + .ios-toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.ios-toggle-wrapper input:focus-visible + .ios-toggle-slider,
+.alarm-toggle-label input:focus-visible + .ios-toggle-slider {
   outline: 3px solid var(--color-focus);
   outline-offset: 2px;
 }

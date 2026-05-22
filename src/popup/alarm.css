@@ -117,24 +117,11 @@ input[type='text']:focus-visible {
 .alarm-toggle-form {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
+  justify-content: space-between;
   font-size: var(--font-size-btn);
   font-weight: var(--font-weight-btn);
   color: var(--color-text);
   cursor: pointer;
-}
-
-.alarm-toggle-form input[type='checkbox'] {
-  width: 1.125rem;
-  height: 1.125rem;
-  margin: 0;
-  cursor: pointer;
-  accent-color: var(--color-btn-bg);
-}
-
-.alarm-toggle-form input[type='checkbox']:focus-visible {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 2px;
 }
 
 /* --- Form errors --- */
@@ -306,22 +293,7 @@ input[type='text']:focus-visible {
 /* --- Enable toggle in alarm card --- */
 
 .alarm-toggle-label {
-  display: flex;
-  align-items: center;
   cursor: pointer;
-}
-
-.alarm-toggle-label input[type='checkbox'] {
-  width: 1.125rem;
-  height: 1.125rem;
-  margin: 0;
-  cursor: pointer;
-  accent-color: var(--color-btn-bg);
-}
-
-.alarm-toggle-label input[type='checkbox']:focus-visible {
-  outline: 3px solid var(--color-focus);
-  outline-offset: 2px;
 }
 
 /* --- Empty state --- */
