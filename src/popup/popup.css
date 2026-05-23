@@ -28,8 +28,8 @@
 
   /* Typography */
   --font-family:
-    -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui, 'Segoe UI',
-    Roboto, sans-serif;
+    'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', system-ui,
+    sans-serif;
   --font-size-time: 2.5rem;
   --font-size-date: 1rem;
   --font-size-btn: 0.875rem;
@@ -133,8 +133,22 @@ main {
 
 .header {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: var(--space-2);
+}
+
+.dual-clock-label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.dual-clock-label-text {
+  font-size: var(--font-size-btn);
+  font-weight: var(--font-weight-btn);
+  color: var(--color-text);
 }
 
 /* --- Clock blocks (card style) --- */
@@ -250,10 +264,28 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: var(--space-1);
   margin-top: var(--space-2);
-  padding-top: var(--space-2);
-  border-top: 1px solid var(--color-border);
+  padding: var(--space-2) 0;
+  border-radius: var(--radius);
+}
+
+.weather-panel:not([data-weather-category])::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 8%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-border) 20%,
+    rgba(0, 122, 255, 0.28) 50%,
+    var(--color-border) 80%,
+    transparent
+  );
 }
 
 .weather-content {
@@ -305,20 +337,12 @@ main {
   display: none;
 }
 
-.weather-updated {
-  font-size: var(--font-size-small);
-  color: var(--color-muted);
-}
-
-.weather-updated:empty {
-  display: none;
-}
-
-/* --- Weather condition animations --- */
+/* --- Weather condition sky backgrounds & animations --- */
 
 .weather-panel {
   position: relative;
   overflow: hidden;
+  transition: background 0.6s ease;
 }
 
 .weather-anim {
@@ -327,178 +351,371 @@ main {
   pointer-events: none;
   overflow: hidden;
   border-radius: inherit;
+  z-index: 0;
 }
 
-/* Clear — warm pulsing glow */
-
-.weather-panel[data-weather-category='clear'] .weather-anim {
-  background: radial-gradient(ellipse at 70% 30%, rgba(255, 204, 0, 0.15), transparent 70%);
-  animation: weather-clear-pulse 4s ease-in-out infinite;
+.weather-anim::before,
+.weather-anim::after {
+  content: '';
+  position: absolute;
+  pointer-events: none;
 }
 
-@keyframes weather-clear-pulse {
-  0%,
-  100% {
-    opacity: 0.6;
-  }
-  50% {
-    opacity: 1;
-  }
+/* Weather info floats above the sky layer */
+.weather-panel .weather-content,
+.weather-panel .weather-status {
+  position: relative;
+  z-index: 1;
 }
 
-/* Clouds — drifting soft shape */
-
-.weather-panel[data-weather-category='clouds'] .weather-anim {
-  background: radial-gradient(ellipse at 30% 50%, rgba(174, 174, 178, 0.18) 0%, transparent 60%);
-  animation: weather-clouds-drift 8s ease-in-out infinite;
+/* Frosted glass backing so text stays legible on any sky */
+.weather-panel[data-weather-category] .weather-content,
+.weather-panel[data-weather-category] .weather-status {
+  background: rgba(255, 255, 255, 0.48);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
 }
 
-@keyframes weather-clouds-drift {
-  0%,
-  100% {
-    transform: translateX(-8%);
-    opacity: 0.7;
-  }
-  50% {
-    transform: translateX(8%);
-    opacity: 1;
-  }
+/* =====================================================
+   CLEAR — Warm sunny day sky
+   ===================================================== */
+
+.weather-panel[data-weather-category='clear'] {
+  background: linear-gradient(165deg, #44b4e8 0%, #96d2f2 45%, #fde880 100%);
 }
 
-/* Rain — falling lines */
+/* Sun disc */
+.weather-panel[data-weather-category='clear'] .weather-anim::before {
+  width: 56px;
+  height: 56px;
+  top: -18px;
+  right: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 50%, #ffe84a 18%, #ffb81c 52%, transparent 72%);
+  box-shadow: 0 0 22px 10px rgba(255, 210, 40, 0.45);
+  animation: sky-sun-pulse 3.5s ease-in-out infinite;
+}
 
-.weather-panel[data-weather-category='rain'] .weather-anim {
-  background: repeating-linear-gradient(
-    170deg,
-    transparent,
-    transparent 6px,
-    rgba(0, 122, 255, 0.08) 6px,
-    rgba(0, 122, 255, 0.08) 7px
+/* Rotating rays */
+.weather-panel[data-weather-category='clear'] .weather-anim::after {
+  width: 130px;
+  height: 130px;
+  top: -50px;
+  right: -20px;
+  border-radius: 50%;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 230, 70, 0.22) 0deg 7deg,
+    transparent 7deg 18deg
   );
-  animation: weather-rain-fall 1.2s linear infinite;
+  animation: sky-sun-spin 16s linear infinite;
 }
 
-@keyframes weather-rain-fall {
-  0% {
-    transform: translateY(-20%);
-  }
-  100% {
-    transform: translateY(20%);
-  }
+@keyframes sky-sun-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.88; }
+  50% { transform: scale(1.1); opacity: 1; }
 }
 
-/* Thunderstorm — rain with flash */
+@keyframes sky-sun-spin {
+  to { transform: rotate(360deg); }
+}
 
+/* =====================================================
+   CLOUDS — Overcast sky with drifting cloud layers
+   ===================================================== */
+
+.weather-panel[data-weather-category='clouds'] {
+  background: linear-gradient(165deg, #5878a0 0%, #8aacc4 45%, #b8ccda 100%);
+}
+
+/* Back cloud layer — slow drift */
+.weather-panel[data-weather-category='clouds'] .weather-anim::before {
+  width: 150%;
+  height: 100%;
+  top: 0;
+  left: -25%;
+  background:
+    radial-gradient(ellipse 95px 48px at 28% 38%, rgba(255, 255, 255, 0.55), transparent 65%),
+    radial-gradient(ellipse 70px 38px at 54% 50%, rgba(240, 248, 255, 0.45), transparent 62%),
+    radial-gradient(ellipse 55px 30px at 76% 36%, rgba(255, 255, 255, 0.38), transparent 60%);
+  animation: sky-cloud-slow 14s ease-in-out infinite;
+}
+
+/* Front cloud layer — faster drift */
+.weather-panel[data-weather-category='clouds'] .weather-anim::after {
+  width: 150%;
+  height: 100%;
+  top: 0;
+  left: -35%;
+  background:
+    radial-gradient(ellipse 58px 30px at 42% 68%, rgba(255, 255, 255, 0.48), transparent 58%),
+    radial-gradient(ellipse 42px 24px at 70% 58%, rgba(240, 248, 255, 0.42), transparent 55%);
+  animation: sky-cloud-fast 9s ease-in-out infinite 1.2s;
+}
+
+@keyframes sky-cloud-slow {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(20%); }
+}
+
+@keyframes sky-cloud-fast {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(-24%); }
+}
+
+/* =====================================================
+   RAIN — Dark grey-blue rainy sky
+   ===================================================== */
+
+.weather-panel[data-weather-category='rain'] {
+  background: linear-gradient(165deg, #263c52 0%, #344e66 50%, #3e5870 100%);
+}
+
+/* Wet-ground sheen at the bottom */
+.weather-panel[data-weather-category='rain'] .weather-anim {
+  background: linear-gradient(to top, rgba(155, 200, 235, 0.13) 0%, transparent 35%);
+}
+
+/* Foreground drops — 20 teardrop shapes, faster */
+.weather-panel[data-weather-category='rain'] .weather-anim::before {
+  top: -12px;
+  left: 0;
+  width: 1.5px;
+  height: 12px;
+  border-radius: 0 0 50% 50%;
+  background: rgba(180, 218, 248, 0.9);
+  box-shadow:
+    14px   3px rgba(180, 218, 248, 0.80),
+    42px  15px rgba(180, 218, 248, 0.75),
+    78px  27px rgba(180, 218, 248, 0.85),
+   112px   8px rgba(180, 218, 248, 0.70),
+   148px  38px rgba(180, 218, 248, 0.80),
+   182px  20px rgba(180, 218, 248, 0.75),
+   218px  50px rgba(180, 218, 248, 0.85),
+   252px  12px rgba(180, 218, 248, 0.70),
+   272px  42px rgba(180, 218, 248, 0.80),
+    25px  60px rgba(180, 218, 248, 0.75),
+    58px  72px rgba(180, 218, 248, 0.85),
+    95px  55px rgba(180, 218, 248, 0.70),
+   130px  80px rgba(180, 218, 248, 0.80),
+   165px  65px rgba(180, 218, 248, 0.75),
+   200px  88px rgba(180, 218, 248, 0.85),
+   235px  70px rgba(180, 218, 248, 0.70),
+   262px  95px rgba(180, 218, 248, 0.80),
+     8px 100px rgba(180, 218, 248, 0.75),
+    45px 108px rgba(180, 218, 248, 0.70),
+   170px 105px rgba(180, 218, 248, 0.80);
+  animation: sky-drops-fg 0.85s linear infinite;
+}
+
+/* Background drops — 15 smaller drops, slower, lighter */
+.weather-panel[data-weather-category='rain'] .weather-anim::after {
+  top: -8px;
+  left: 0;
+  width: 1px;
+  height: 8px;
+  border-radius: 0 0 50% 50%;
+  background: rgba(160, 205, 240, 0.5);
+  box-shadow:
+    30px   5px rgba(160, 205, 240, 0.40),
+    65px  22px rgba(160, 205, 240, 0.50),
+   100px  45px rgba(160, 205, 240, 0.40),
+   135px  10px rgba(160, 205, 240, 0.50),
+   170px  58px rgba(160, 205, 240, 0.40),
+   205px  30px rgba(160, 205, 240, 0.50),
+   240px  75px rgba(160, 205, 240, 0.40),
+   268px  18px rgba(160, 205, 240, 0.50),
+    18px  85px rgba(160, 205, 240, 0.40),
+    52px  35px rgba(160, 205, 240, 0.50),
+    88px  62px rgba(160, 205, 240, 0.40),
+   123px  90px rgba(160, 205, 240, 0.50),
+   158px  48px rgba(160, 205, 240, 0.40),
+   193px 100px rgba(160, 205, 240, 0.50),
+   228px 108px rgba(160, 205, 240, 0.40);
+  animation: sky-drops-bg 1.2s linear infinite 0.4s;
+}
+
+@keyframes sky-drops-fg {
+  from { transform: translateY(0); }
+  to   { transform: translateY(112px); }
+}
+
+@keyframes sky-drops-bg {
+  from { transform: translateY(0); }
+  to   { transform: translateY(108px); }
+}
+
+/* =====================================================
+   THUNDER — Near-black storm sky with lightning
+   ===================================================== */
+
+.weather-panel[data-weather-category='thunder'] {
+  background: linear-gradient(165deg, #131820 0%, #1c2232 50%, #161c28 100%);
+}
+
+/* Heavy rain streaks (::before/::after are reserved for lightning) */
 .weather-panel[data-weather-category='thunder'] .weather-anim {
   background: repeating-linear-gradient(
-    170deg,
-    transparent,
-    transparent 6px,
-    rgba(0, 122, 255, 0.08) 6px,
-    rgba(0, 122, 255, 0.08) 7px
+    172deg,
+    transparent 0px, transparent 4px,
+    rgba(130, 172, 218, 0.18) 4px, rgba(130, 172, 218, 0.18) 5.5px
   );
-  animation:
-    weather-rain-fall 1.2s linear infinite,
-    weather-thunder-flash 4s ease-in-out infinite;
+  animation: sky-thunder-rain 0.65s linear infinite;
 }
 
-@keyframes weather-thunder-flash {
-  0%,
-  92%,
-  100% {
-    opacity: 1;
-  }
-  94% {
-    opacity: 0.3;
-  }
-  96% {
-    opacity: 1;
-  }
-  97% {
-    opacity: 0.4;
-  }
+@keyframes sky-thunder-rain {
+  0%   { background-position: 0 -60px; }
+  100% { background-position: 8px 60px; }
 }
 
-/* Snow — gentle falling dots */
+/* Lightning bolt */
+.weather-panel[data-weather-category='thunder'] .weather-anim::before {
+  width: 14px;
+  height: 40px;
+  top: 5px;
+  right: 22px;
+  background: linear-gradient(to bottom, #fffcaa, #ffd830cc);
+  clip-path: polygon(46% 0%, 100% 0%, 62% 42%, 100% 42%, 16% 100%, 52% 55%, 16% 55%);
+  filter: blur(0.5px);
+  animation: sky-bolt 5s ease-in-out infinite;
+}
 
+/* Full-panel flash */
+.weather-panel[data-weather-category='thunder'] .weather-anim::after {
+  inset: 0;
+  background: rgba(210, 230, 255, 0.32);
+  opacity: 0;
+  animation: sky-flash 5s ease-in-out infinite 0.08s;
+}
+
+@keyframes sky-bolt {
+  0%, 84%, 100% { opacity: 0; }
+  86%, 91% { opacity: 1; }
+  89%, 93% { opacity: 0; }
+}
+
+@keyframes sky-flash {
+  0%, 85%, 100% { opacity: 0; }
+  87% { opacity: 1; }
+  89% { opacity: 0; }
+  91% { opacity: 0.7; }
+  93% { opacity: 0; }
+}
+
+/* =====================================================
+   SNOW — Pale cold sky with falling flakes
+   ===================================================== */
+
+.weather-panel[data-weather-category='snow'] {
+  background: linear-gradient(165deg, #9cc4de 0%, #c2dcee 50%, #e8f2f8 100%);
+}
+
+/* Larger flakes — slower */
 .weather-panel[data-weather-category='snow'] .weather-anim {
   background:
-    radial-gradient(1.5px 1.5px at 20% 30%, rgba(174, 174, 178, 0.4), transparent),
-    radial-gradient(1.5px 1.5px at 50% 60%, rgba(174, 174, 178, 0.35), transparent),
-    radial-gradient(1px 1px at 75% 20%, rgba(174, 174, 178, 0.3), transparent),
-    radial-gradient(1.5px 1.5px at 40% 80%, rgba(174, 174, 178, 0.35), transparent),
-    radial-gradient(1px 1px at 85% 50%, rgba(174, 174, 178, 0.3), transparent);
-  background-size: 100% 50%;
-  animation: weather-snow-fall 3s linear infinite;
+    radial-gradient(2px 2px at 12% 18%, rgba(255, 255, 255, 0.95), transparent),
+    radial-gradient(2.5px 2.5px at 36% 54%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 60% 28%, rgba(255, 255, 255, 0.85), transparent),
+    radial-gradient(2px 2px at 78% 66%, rgba(255, 255, 255, 0.9), transparent),
+    radial-gradient(1.5px 1.5px at 50% 84%, rgba(255, 255, 255, 0.82), transparent),
+    radial-gradient(2px 2px at 24% 90%, rgba(255, 255, 255, 0.88), transparent);
+  background-size: 100% 60px;
+  animation: sky-snow-a 3.2s linear infinite;
 }
 
-@keyframes weather-snow-fall {
-  0% {
-    transform: translateY(-50%);
-  }
-  100% {
-    transform: translateY(0);
-  }
+/* Finer flakes — faster */
+.weather-panel[data-weather-category='snow'] .weather-anim::before {
+  inset: 0;
+  background:
+    radial-gradient(1px 1px at 22% 32%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1.5px 1.5px at 46% 12%, rgba(255, 255, 255, 0.75), transparent),
+    radial-gradient(1px 1px at 68% 58%, rgba(255, 255, 255, 0.8), transparent),
+    radial-gradient(1px 1px at 86% 38%, rgba(255, 255, 255, 0.72), transparent),
+    radial-gradient(1.5px 1.5px at 8% 74%, rgba(255, 255, 255, 0.78), transparent);
+  background-size: 100% 44px;
+  animation: sky-snow-b 2.6s linear infinite 0.8s;
 }
 
-/* Mist/Fog — slow opacity pulse */
+/* Cold sky shimmer */
+.weather-panel[data-weather-category='snow'] .weather-anim::after {
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(220, 240, 255, 0.28), transparent 55%);
+  animation: sky-snow-shimmer 4s ease-in-out infinite;
+}
 
-.weather-panel[data-weather-category='mist'] .weather-anim {
+@keyframes sky-snow-a {
+  0% { background-position: 0 0; }
+  100% { background-position: 3px 60px; }
+}
+
+@keyframes sky-snow-b {
+  0% { background-position: 0 0; }
+  100% { background-position: -2px 44px; }
+}
+
+@keyframes sky-snow-shimmer {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+
+/* =====================================================
+   MIST — Layered fog drifting in opposite directions
+   ===================================================== */
+
+.weather-panel[data-weather-category='mist'] {
+  background: linear-gradient(165deg, #6a7e8c 0%, #96aab5 50%, #b8c5cc 100%);
+}
+
+/* Fog band 1 */
+.weather-panel[data-weather-category='mist'] .weather-anim::before {
+  left: 0; right: 0;
+  top: 14%;
+  height: 36%;
   background: linear-gradient(
     90deg,
-    transparent 0%,
-    rgba(174, 174, 178, 0.12) 30%,
-    rgba(174, 174, 178, 0.12) 70%,
-    transparent 100%
+    transparent 0%, rgba(255, 255, 255, 0.35) 22%,
+    rgba(255, 255, 255, 0.5) 50%, rgba(255, 255, 255, 0.35) 78%, transparent 100%
   );
-  animation: weather-mist-pulse 5s ease-in-out infinite;
+  animation: sky-fog-r 7s ease-in-out infinite;
 }
 
-@keyframes weather-mist-pulse {
-  0%,
-  100% {
-    opacity: 0.4;
-    transform: scaleX(0.95);
-  }
-  50% {
-    opacity: 1;
-    transform: scaleX(1.05);
-  }
+/* Fog band 2 */
+.weather-panel[data-weather-category='mist'] .weather-anim::after {
+  left: 0; right: 0;
+  top: 56%;
+  height: 28%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%, rgba(255, 255, 255, 0.26) 18%,
+    rgba(255, 255, 255, 0.4) 55%, rgba(255, 255, 255, 0.26) 84%, transparent 100%
+  );
+  animation: sky-fog-l 9.5s ease-in-out infinite 2s;
 }
 
-/* Reduced motion — disable all weather animations */
+@keyframes sky-fog-r {
+  0%, 100% { transform: translateX(-14%); opacity: 0.65; }
+  50% { transform: translateX(14%); opacity: 1; }
+}
+
+@keyframes sky-fog-l {
+  0%, 100% { transform: translateX(14%); opacity: 0.55; }
+  50% { transform: translateX(-14%); opacity: 0.9; }
+}
+
+/* Reduced motion — freeze all sky animations */
 
 @media (prefers-reduced-motion: reduce) {
-  .weather-anim {
-    animation: none;
+  .weather-anim,
+  .weather-anim::before,
+  .weather-anim::after {
+    animation: none !important;
   }
 }
 
 /* --- Settings controls (card style) --- */
 
-.settings {
-  display: flex;
-  align-items: center;
-  padding: var(--space-3) var(--space-4);
-  margin-top: var(--space-3);
-  background-color: var(--color-surface);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow-card);
-}
-
-.settings-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  cursor: pointer;
-}
-
-.settings-row-label {
-  font-size: var(--font-size-btn);
-  font-weight: var(--font-weight-btn);
-  color: var(--color-text);
-}
 
 /* --- iOS-style toggle switch --- */
 

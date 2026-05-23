@@ -286,7 +286,7 @@ if (typeof document !== 'undefined') {
   /**
    * Query all weather panel DOM elements for a given clock prefix.
    * @param {string} prefix - "primary" or "secondary"
-   * @returns {{content: Element, icon: Element, city: Element, condition: Element, temp: Element, status: Element, updated: Element}}
+   * @returns {{content: Element, icon: Element, city: Element, condition: Element, temp: Element, status: Element}}
    */
   var _queryWeatherEls = function _queryWeatherEls(prefix) {
     return {
@@ -297,20 +297,7 @@ if (typeof document !== 'undefined') {
       condition: document.getElementById(prefix + 'WeatherCondition'),
       temp: document.getElementById(prefix + 'WeatherTemp'),
       status: document.getElementById(prefix + 'WeatherStatus'),
-      updated: document.getElementById(prefix + 'WeatherUpdated'),
     };
-  };
-
-  /**
-   * Format a timestamp as a compact "Updated HH:MM" string.
-   * @param {number} fetchedAt - Epoch milliseconds
-   * @returns {string}
-   */
-  var _formatUpdatedTime = function _formatUpdatedTime(fetchedAt) {
-    var d = new Date(fetchedAt);
-    var h = String(d.getHours()).padStart(2, '0');
-    var m = String(d.getMinutes()).padStart(2, '0');
-    return 'Updated ' + h + ':' + m;
   };
 
   /**
@@ -331,9 +318,6 @@ if (typeof document !== 'undefined') {
       if (els.status) {
         els.status.hidden = false;
         els.status.textContent = 'Weather unavailable';
-      }
-      if (els.updated) {
-        els.updated.textContent = '';
       }
       if (els.panel) {
         delete els.panel.dataset.weatherCategory;
@@ -372,9 +356,6 @@ if (typeof document !== 'undefined') {
     els.content.hidden = false;
     if (els.status) {
       els.status.hidden = true;
-    }
-    if (els.updated) {
-      els.updated.textContent = _formatUpdatedTime(result.fetchedAt);
     }
   };
 

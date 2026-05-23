@@ -4,6 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Time & Date Extension</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="popup.css" />
     <link rel="stylesheet" href="alarm.css" />
   </head>
@@ -32,6 +38,13 @@
 
       <div id="clockView" role="tabpanel" aria-labelledby="clockTab">
         <header class="header">
+          <label class="dual-clock-label" for="dualClockToggle">
+            <span class="dual-clock-label-text">Second clock</span>
+            <span class="ios-toggle-wrapper">
+              <input type="checkbox" id="dualClockToggle" />
+              <span class="ios-toggle-slider"></span>
+            </span>
+          </label>
           <!-- Icon-only button: aria-label provides the accessible name;
                decorative icon is hidden from assistive technology -->
           <button id="refreshBtn" type="button" aria-label="Refresh time and date">
@@ -81,7 +94,6 @@
                 </div>
               </div>
               <p class="weather-status" id="primaryWeatherStatus">Weather unavailable</p>
-              <span class="weather-updated" id="primaryWeatherUpdated"></span>
             </div>
           </section>
 
@@ -130,23 +142,19 @@
                 </div>
               </div>
               <p class="weather-status" id="secondaryWeatherStatus">Weather unavailable</p>
-              <span class="weather-updated" id="secondaryWeatherUpdated"></span>
             </div>
           </section>
         </div>
 
-        <div class="settings">
-          <label class="settings-row">
-            <span class="settings-row-label">Second clock</span>
-            <span class="ios-toggle-wrapper">
-              <input type="checkbox" id="dualClockToggle" />
-              <span class="ios-toggle-slider"></span>
-            </span>
-          </label>
-        </div>
       </div>
 
       <div id="alarmView" role="tabpanel" aria-labelledby="alarmTab" hidden>
+        <section id="alarmListSection" aria-label="Your alarms">
+          <h2 class="alarm-view-heading">Alarms</h2>
+          <div id="alarmList" role="list"></div>
+          <p id="alarmEmptyState" class="empty-state">No alarms yet.</p>
+        </section>
+
         <section id="alarmFormSection" aria-label="Alarm form">
           <h2 id="alarmFormHeading" class="alarm-view-heading">New Alarm</h2>
 
@@ -226,12 +234,6 @@
               </button>
             </div>
           </form>
-        </section>
-
-        <section id="alarmListSection" aria-label="Your alarms">
-          <h2 class="alarm-view-heading">Alarms</h2>
-          <div id="alarmList" role="list"></div>
-          <p id="alarmEmptyState" class="empty-state">No alarms yet. Create one above.</p>
         </section>
       </div>
 
